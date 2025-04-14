@@ -31,75 +31,105 @@ def parseBigFile(file):
 
 def parseAndRun(arg):
 
-	filename,setDiff,caseStudy,benchmarkCase = arg
+	filename,setDiff,lemma,caseStudy,benchmarkCase,log = arg
 	filename = filename.split(".")[0]
 
-	resultDir = f"../../files_to_benchmark/res_{caseStudy}_{benchmarkCase}"
-	#if not os.path.isdir(resultDir):
-	#	os.makedirs(resultDir)
+	lemmaName = re.split("\t",lemma)[0]
 
-	dirname = f"../../files_to_benchmark/{caseStudy}"
-	proofFile = f"{resultDir}/{filename}_recap.spthy"
-	bigfile = f"{resultDir}/{filename}_total.spthy"
-	timefile= f"{resultDir}/{filename}_time.spthy"
+	#try:
+	if(True):
 
-	diff=""
-	result=""
+		with open(log,'a') as l:
+			l.write(f"BEGINNING: {caseStudy}\t{filename}\t{lemmaName}\n")
+		print(f"{filename}\t{lemmaName}")
 
-
-	if (benchmarkCase == "smartverif"):
-
-		if (setDiff=="TRUE"):
-			diff = "--diff"
-
-		#tester si smartverif à besoin du flag
-
-		print(f"{filename}")
-
-		start = perf_counter()
-		#print(f"timeout 12h ./smartverif {dirname}/{filename}.spthy {diff} +RTS -N4 -RTS > {bigfile} 2>&1")
-		os.system(f"timeout 12h ./smartverif {dirname}/{filename}.spthy {diff} +RTS -N4 -RTS > {bigfile} 2>&1")
-		end = perf_counter()
-
-		with open(f"{timefile}","a") as t:
-			t.write(str(end-start)+"\n")
+		diff=""
+		result=""
 
 
-	else:
-		if (setDiff=="TRUE"):
-			diff = "--diff"
+		if (benchmarkCase == "smartverif"):
 
-		print(f"{filename}")
-		#cmd = f"timeout 1m tamarin-prover --prove {dirname}/{filename}.spthy {diff} +RTS -N10 -RTS --output={proofFile} > {bigfile} 2>&1"
-		#print(cmd)
-		start = perf_counter()
-		os.system(f"timeout 12h tamarin-prover --prove {dirname}/{filename}.spthy {diff} +RTS -N4 -RTS --output={proofFile} --derivcheck-timeout=0 > {bigfile} 2>&1")
-		end = perf_counter()
+			resultDir = f"../files_to_benchmark/propre/res_{caseStudy}_{benchmarkCase}"
+			if not os.path.isdir(resultDir):
+				os.makedirs(resultDir)
 
-		with open(f"{timefile}","a") as t:
-			t.write(str(end-start)+"\n")
+			dirname = f"../files_to_benchmark/{caseStudy}"
+			proofFile = f"{resultDir}/{filename}__{lemmaName}_recap.spthy"
+			bigfile = f"{resultDir}/{filename}__{lemmaName}_total.spthy"
+			timefile= f"{resultDir}/{filename}__{lemmaName}_time.spthy"
 
+			
 
-		if (not exists(proofFile) or (os.stat(proofFile).st_size == 0)):
-			with open(bigfile, 'r') as bf:
-				lastline = bf.readlines()[-1]
-			if (re.findall("Killed",lastline) == []):
-				result = f"{filename},Killed\n"
-			else:
-				result = f"{filename},TimeOut\n"
-			if (exists(proofFile)):
-				os.remove(proofFile)
+			if (setDiff=="TRUE"):
+				diff = "--diff"
+
+			#tester si smartverif à besoin du flag
+
+			print(f"{filename}")
+
+			start = perf_counter()
+			#print(f"timeout 12h ./smartverif {dirname}/{filename}.spthy {diff} +RTS -N4 -RTS > {bigfile} 2>&1")
+			os.system(f"timeout 2h ./smartverif {dirname}/{filename}.spthy +RTS -N4 -RTS > {bigfile} 2>&1")
+			end = perf_counter()
+
+			with open(f"{timefile}","a") as t:
+				t.write(str(end-start)+"\n")
+
 		else:
-			status = parseBigFile(bigfile)
-			if (status):
-				result = f"{filename},Incomplete\n"
+			if (setDiff=="TRUE"):
+				diff = "--diff"
+
+			resultDir = f"../../files_to_benchmark/propre/res_{caseStudy}_{benchmarkCase}"
+			if not os.path.isdir(resultDir):
+				os.makedirs(resultDir)
+
+			dirname = f"../../files_to_benchmark/{caseStudy}"
+			proofFile = f"{resultDir}/{filename}__{lemmaName}_recap.spthy"
+			bigfile = f"{resultDir}/{filename}__{lemmaName}_total.spthy"
+			timefile= f"{resultDir}/{filename}__{lemmaName}_time.spthy"
+
+			# proofFile = f"{resultDir}/{filename}__{lemmaName}_recap.spthy"
+			# bigfile = f"{resultDir}/{filename}__{lemmaName}_total.spthy"
+			# timefile= f"{resultDir}/{filename}__{lemmaName}_time.spthy"
+
+			#cmd = f"timeout 12h tamarin-prover --prove={lemma} {dirname}/{filename}.spthy {diff} +RTS -N4 -RTS --output={proofFile} --derivcheck-timeout=0 > {bigfile} 2>&1"
+			#print(cmd)
+			start = perf_counter()
+			#print(f"timeout 2h tamarin-prover --prove={lemma} {dirname}/{filename}.spthy {diff} +RTS -N4 -RTS --output={proofFile} --derivcheck-timeout=0 > {bigfile} 2>&1")
+			os.system(f"timeout 2h tamarin-prover --prove={lemma} {dirname}/{filename}.spthy {diff} +RTS -N4 -RTS --output={proofFile} --derivcheck-timeout=0 > {bigfile} 2>&1") #
+			end = perf_counter()
+
+			with open(f"{timefile}","a") as t:
+				t.write(str(end-start)+"\n")
+
+			with open(log,'a') as l:
+				l.write(f"ENDING: {caseStudy}\t{filename}\t{lemmaName}\n")
+
+			if (not exists(proofFile) or (os.stat(proofFile).st_size == 0)):
+				with open(bigfile, 'r') as bf:
+					lastline = bf.readlines()[-1]
+				if (re.findall("Killed",lastline) == []):
+					result = f"{filename},Killed\n"
+				else:
+
+					result = f"{filename},TimeOut\n"
+				if (exists(proofFile)):
+					os.remove(proofFile)
 			else:
-				t = ""
-				with open(timefile) as tf :
-					lines = tf.readlines()
-				result = f"{filename},{lines[-1]}"
-			os.remove(bigfile)
-	return(result)
+				status = parseBigFile(bigfile)
+				if (status):
+					result = f"{filename},Incomplete\n"
+				else:
+					t = ""
+					with open(timefile) as tf :
+						lines = tf.readlines()
+					result = f"{filename},{lines[-1]}"
+				os.remove(bigfile)
+
+		
+		return(result)
+	#except Exception:
+	#	print(f"Fail in parse and run: {filename} | {lemma}")
 
 
 
@@ -112,33 +142,43 @@ def chooseVersion(version):
 		tamarinDir = "develop/tamarin-prover"
 		version = 0
 	elif (version == '1'):
-		benchmarkCase = "escapeLoop"
-		tamarinDir = "escape_new/tamarin-prover"
+		benchmarkCase = "escapeFinal"
+		tamarinDir = "escapeFinal/tamarin-prover"
 		version = 1
 	elif (version == '2'):
-		benchmarkCase = "backtracking"
-		tamarinDir = "loopNoBlackList/tamarin-prover"
-		version = 2
-	elif (version == '3'):
-		benchmarkCase = "blackListing"
-		tamarinDir = "reinfLearning/tamarin-prover"
-		version = 3
-	elif (version == '4'):
 		benchmarkCase = "smartverif"
 		tamarinDir = "develop/tamarin-prover"
+		version = 2
+	elif (version == '3'):
+		benchmarkCase = "proba"
+		tamarinDir = "proba/tamarin-prover"
+		version = 3
+	elif (version == '4'):
+		benchmarkCase = "smartmarin"
+		tamarinDir = "smartmarin/tamarin-prover"
 		version = 4
 	elif (version == '5'):
-		benchmarkCase = "backtrackingLight"
-		tamarinDir = "backtrackingLight/tamarin-prover"
+		benchmarkCase = "backtracking"
+		tamarinDir = "backtracking/tamarin-prover"
 		version = 5
+	elif (version == '6'):
+		benchmarkCase = "blacklisting"
+		tamarinDir = "blacklisting/tamarin-prover"
+		version = 6
+    #elif (version == '7'):
+	#	benchmarkCase = "smartverif"
+	#	tamarinDir = "develop/tamarin-prover"
+	#	version = 5
 	else:
 		print("Incorrect argument: choose among the following",
-				"0: developp version of tamarin",
-				"1: escaping the loop version",
-				"2: backtracking version 'without blacklist",
-				"3: blackListing version",
-				"4: smartverif",
-				"5: backtracking only when no more option",
+				"0: develop version of tamarin",
+				"1: escape final (only normal loop detection )",
+				"2: smartverif",
+				"3: proba",
+				"4: smartmarin",
+				#"5: smartverif",
+				"5: backtracking",
+				"6: blacklisting",
 				sep=os.linesep
 			)
 		quit()
@@ -152,45 +192,89 @@ def chooseVersion(version):
 	os.system("make")
 
 	#In SmartVerif case we recompile the right version of tamarin before giving it to SmartVerif
-	if (version == 4):
+	if (version == 5):
 		print(os.getcwd())
 		print(version)
-		os.chdir("../smartverifD")
+		os.chdir("..")
 
 	return(benchmarkCase, version)
 
+def generateInputFile(filename, diff, lemmaFile, diir, benchmarkcase, constructedInput,log):
+	inputs = []
+	lemmas = []
+
+	fi = f"../../files_to_benchmark/input_lemmas/{lemmaFile}"
+
+	if (version == 5):
+		fi = f"../files_to_benchmark/input_lemmas/{lemmaFile}"
+
+	with open(fi) as f:
+			lines = f.readlines()
+			for line in lines:
+				if line[0] != "#":
+
+					lemma = re.sub(r"\s+$", "", line, 0, re.MULTILINE)
+					lemmas.append(lemma)
+	with open(constructedInput,'a') as ci:
+		for lemma in lemmas:
+			ci.write(f"{diir}\t{filename}\t{lemma}\t{diff}\n")
+			inputs.append((filename, diff, lemma, diir,benchmarkcase,log))
+	return(inputs)
+
+
 if (len(sys.argv) != 2):
 	print("Choose the benchmark mode",
-			"0: developp version of tamarin",
-			"1: escaping the loop version",
-			"2: backtracking version 'without blacklist",
-			"3: blackListing version",
-			"4: smartverif",
-			"5: backtracking only when no more option",
+				"0: develop version of tamarin",
+				"1: escape final (only normal loop detection )",
+				"2: smartverif",
+				"3: proba",
+				"4: smartmarin",
+				"5: backtracking",
+				"6: blacklisting",
 			sep=os.linesep)
 	benchmarkCase, version = chooseVersion(input(""))
 else:
 	benchmarkCase, version = chooseVersion(sys.argv[1])
 
 
+
 N = 5
 file = "../../files_to_benchmark/inputscript_filesToBenchmark.txt"
+constructedInput = "../../files_to_benchmark/currentLemmaInput"
+log = "../../files_to_benchmark/log"
 recapFile = f"../../files_to_benchmark/recapfile_{benchmarkCase}.csv"
 
+if (version == 5):
+		file = "../files_to_benchmark/inputscript_filesToBenchmark.txt"
+		constructedInput = "../files_to_benchmark/currentLemmaInput"
+		log = "../files_to_benchmark/log"
+		recapFile = f"../files_to_benchmark/recapfile_{benchmarkCase}.csv"
+
 inputs=[]
+inputs_parallel = []
+if os.path.isfile(constructedInput):
+	os.remove(constructedInput)
+if os.path.isfile(log):
+	os.remove(log)
 with open(file) as f:
 	lines = f.readlines()
 	for line in lines:
-		params = re.split(r'\t',line)
-		#print(parseAndRun((params[1], params[0], params[2][:-1], benchmarkCase, recapFile)))
-		inputs.append((params[1], params[0], params[2][:-1], benchmarkCase))
+		if line[0] != "#":
+			params = re.split(r'\t',line)
+			#print(parseAndRun((params[1], params[0], params[2][:-1], benchmarkCase, recapFile)))
+			inputs.append((params[1], params[0], params[2], params[3][:-1], benchmarkCase))
 
-		resultDir = f"../../files_to_benchmark/res_{params[2][:-1]}_{benchmarkCase}"
-		if not os.path.isdir(resultDir):
-			os.makedirs(resultDir)
+			inputs_parallel = inputs_parallel + generateInputFile(params[1], params[0], params[2], params[3][:-1], benchmarkCase, constructedInput, log)
+
+			resultDir = f"../../propre/{benchmarkCase}/res_{params[3][:-1]}_{benchmarkCase}"
+
+			if (version == 5):
+				resultDir = f"../propre/{benchmarkCase}/res_{params[3][:-1]}_{benchmarkCase}"
+			if not os.path.isdir(resultDir):
+				os.makedirs(resultDir)
 
 pool = multiprocessing.Pool(processes=N)
-outputs = pool.map(parseAndRun, inputs)
+outputs = pool.map(parseAndRun, inputs_parallel)
 pool.close()
 pool.join()
 
