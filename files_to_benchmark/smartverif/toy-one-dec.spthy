@@ -1,0 +1,194 @@
+theory ToyOneDec begin
+
+// Function signature and definition of the equational theory E
+
+functions: check_rep/2, fst/1, get_rep/1, pair/2, rep/2 [private],
+           sdec/2, senc/2, snd/1
+equations:
+    check_rep(rep(m, loc), loc) = m,
+    fst(<x.1, x.2>) = x.1,
+    get_rep(rep(m, loc)) = m,
+    sdec(senc(x.1, x.2), x.2) = x.1,
+    snd(<x.1, x.2>) = x.2
+
+
+rule (modulo E) Init_:
+   [ ] --[ Init( ) ]-> [ State_( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_k_:
+   [ State_( ), Fr( k ) ] --> [ State_1( k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_s_1:
+   [ State_1( k ), Fr( s ) ] --> [ State_11( k, s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_Secrets_11:
+   [ State_11( k, s ) ] --[ Event( ), Secret( s ) ]-> [ State_111( k, s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_111:
+   [ State_111( k, s ) ] --> [ !Semistate_1111( k, s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_111:
+   [ !Semistate_1111( k, s ) ] --> [ State_1111( k, s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_n_1111[color=#569dc0]:
+   [ State_1111( k, s ), Fr( n ) ] --> [ State_11111( k, n, s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_k1_11111[color=#569dc0]:
+   [ State_11111( k, n, s ), Fr( k1 ) ] --> [ State_111111( k, k1, n, s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_k2_111111[color=#569dc0]:
+   [ State_111111( k, k1, n, s ), Fr( k2 ) ]
+  -->
+   [ State_1111111( k, k1, k2, n, s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_senc_n_k1_k_1111111[color=#569dc0]:
+   [ State_1111111( k, k1, k2, n, s ) ]
+  -->
+   [ State_11111111( k, k1, k2, n, s ), Out( senc(<n, k1>, k) ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_senc_n_k2_k_11111111[color=#569dc0]:
+   [ State_11111111( k, k1, k2, n, s ) ]
+  -->
+   [ State_111111111( k, k1, k2, n, s ), Out( senc(<n, k2>, k) ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_sencs_k1_k2__111111111[color=#569dc0]:
+   [ State_111111111( k, k1, k2, n, s ) ]
+  -->
+   [ State_1111111111( k, k1, k2, n, s ), Out( senc(s, <k1, k2>) ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_y_1111111111[color=#569dc0]:
+   [ State_1111111111( k, k1, k2, n, s ), In( y ) ]
+  -->
+   [ State_11111111111( k, k1, k2, n, s, y ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqfstsdecy_k_n_0_11111111111[color=#569dc0]:
+   [ State_11111111111( k, k1, k2, n, s, y ) ]
+  --[ Pred_eq( fst(sdec(y, k)), n ) ]->
+   [ State_111111111111( k, k1, k2, n, s, y ) ]
+
+  /*
+  rule (modulo AC) if_eqfstsdecy_k_n_0_11111111111[color=#569dc0]:
+     [ State_11111111111( k, k1, k2, n, s, y ) ]
+    --[ Pred_eq( z, n ) ]->
+     [ State_111111111111( k, k1, k2, n, s, y ) ]
+    variants (modulo AC)
+    1. k     = k.8
+       y     = y.8
+       z     = fst(sdec(y.8, k.8))
+    
+    2. k     = x.8
+       y     = senc(x.13, x.8)
+       z     = fst(x.13)
+    
+    3. k     = x.8
+       y     = senc(<x.13, x.14>, x.8)
+       z     = x.13
+  */
+
+rule (modulo E) if_eqfstsdecy_k_n_1_11111111111[color=#569dc0]:
+   [ State_11111111111( k, k1, k2, n, s, y ) ]
+  --[ Pred_not_eq( fst(sdec(y, k)), n ) ]->
+   [ State_111111111112( k, k1, k2, n, s, y ) ]
+
+  /*
+  rule (modulo AC) if_eqfstsdecy_k_n_1_11111111111[color=#569dc0]:
+     [ State_11111111111( k, k1, k2, n, s, y ) ]
+    --[ Pred_not_eq( z, n ) ]->
+     [ State_111111111112( k, k1, k2, n, s, y ) ]
+    variants (modulo AC)
+    1. k     = k.8
+       y     = y.8
+       z     = fst(sdec(y.8, k.8))
+    
+    2. k     = x.8
+       y     = senc(x.13, x.8)
+       z     = fst(x.13)
+    
+    3. k     = x.8
+       y     = senc(<x.13, x.14>, x.8)
+       z     = x.13
+  */
+
+rule (modulo E) out_sndsdecy_k_111111111111[color=#569dc0]:
+   [ State_111111111111( k, k1, k2, n, s, y ) ]
+  -->
+   [ State_1111111111111( k, k1, k2, n, s, y ), Out( snd(sdec(y, k)) ) ]
+
+  /*
+  rule (modulo AC) out_sndsdecy_k_111111111111[color=#569dc0]:
+     [ State_111111111111( k, k1, k2, n, s, y ) ]
+    -->
+     [ State_1111111111111( k, k1, k2, n, s, y ), Out( z ) ]
+    variants (modulo AC)
+    1. k     = k.8
+       y     = y.8
+       z     = snd(sdec(y.8, k.8))
+    
+    2. k     = x.8
+       y     = senc(x.13, x.8)
+       z     = snd(x.13)
+    
+    3. k     = x.8
+       y     = senc(<x.13, x.14>, x.8)
+       z     = x.14
+  */
+
+rule (modulo E) Zero_1111111111111[color=#569dc0]:
+   [ State_1111111111111( k, k1, k2, n, s, y ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111111112[color=#569dc0]:
+   [ State_111111111112( k, k1, k2, n, s, y ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+restriction predicate_eq:
+  "∀ #i a b. (Pred_eq( a, b ) @ #i) ⇒ (a = b)"
+  // safety formula
+
+restriction predicate_not_eq:
+  "∀ #i a b. (Pred_not_eq( a, b ) @ #i) ⇒ (¬(a = b))"
+  // safety formula
+
+restriction single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+lemma secret_of_s:
+  all-traces "∀ s #j. (Secret( s ) @ #j) ⇒ (¬(∃ #i. !KU( s ) @ #i))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ s #j. (Secret( s ) @ #j) ∧ ∃ #i. (!KU( s ) @ #i)"
+*/
+by sorry
+
+/* All well-formedness checks were successful. */
+
+end

@@ -1,0 +1,1613 @@
+theory Scytl_Voting_System begin
+
+// Function signature and definition of the equational theory E
+
+functions: cc/1 [private], check/2, check_rep/2, cut/1, dec/2, enc/3,
+           f/2, fst/1, get_id/1, get_message/1, get_rep/1, get_w/2, h/1,
+           honest/1 [private], pair/2, phi/1, pk/1, pub/1, rep/2 [private], sign/2,
+           sk/1 [private], snd/1, true/0, v/1, verifE/2, verifP/6, verifS/3, w/2,
+           zkp/7
+equations:
+    check(pub(Skey), sign(Skey, M)) = M,
+    check_rep(rep(m, loc), loc) = m,
+    dec(Skey, enc(pub(Skey), M, R)) = M,
+    fst(<x.1, x.2>) = x.1,
+    get_id(pub(sk(Id))) = Id,
+    get_message(sign(Skey, M)) = M,
+    get_rep(rep(m, loc)) = m,
+    get_w(w(Skey, V), Skey) = V,
+    snd(<x.1, x.2>) = x.2,
+    verifE(pkey, enc(pkey, m, r)) = true,
+    verifP(Pke, pub(Skid), enc(Pke, phi(v1), R),
+           cut(enc(Pke, phi(w(Skid, v1)), R)), w(Skid, v1),
+           zkp(Pke, pub(Skid), enc(Pke, phi(v1), R),
+               cut(enc(Pke, phi(w(Skid, v1)), R)), w(Skid, v1), R, Skid))
+  = true,
+    verifP(Pke, pub(Skid), enc(Pke, phi(v1), R),
+           cut(enc(Pke, phi(w(Skid, v1)), R)), w(Skid, v1),
+           zkp(Pke, pub(Skid), enc(Pke, phi(v1), R),
+               w(Skid, cut(enc(Pke, phi(v1), R))), w(Skid, v1), R, Skid))
+  = true,
+    verifP(Pke, pub(Skid), enc(Pke, phi(v1), R),
+           w(Skid, cut(enc(Pke, phi(v1), R))), w(Skid, v1),
+           zkp(Pke, pub(Skid), enc(Pke, phi(v1), R),
+               cut(enc(Pke, phi(w(Skid, v1)), R)), w(Skid, v1), R, Skid))
+  = true,
+    verifP(Pke, pub(Skid), enc(Pke, phi(v1), R),
+           w(Skid, cut(enc(Pke, phi(v1), R))), w(Skid, v1),
+           zkp(Pke, pub(Skid), enc(Pke, phi(v1), R),
+               w(Skid, cut(enc(Pke, phi(v1), R))), w(Skid, v1), R, Skid))
+  = true,
+    verifS(pub(skey), m, sign(skey, m)) = true
+
+section{* Scytl Voting System *}
+
+rule (modulo E) Init_:
+   [ ] --[ Init( ) ]-> [ State_( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_election_:
+   [ State_( ), Fr( election ) ] --> [ State_1( election ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_election_1:
+   [ State_1( election ) ] --> [ State_11( election ), Out( election ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_signature_11:
+   [ State_11( election ), Fr( signature ) ]
+  -->
+   [ State_111( election, signature ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_signature_111:
+   [ State_111( election, signature ) ]
+  -->
+   [ State_1111( election, signature ), Out( signature ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_globalCGKP_1111:
+   [ State_1111( election, signature ), Fr( globalCGKP ) ]
+  -->
+   [ State_11111( election, globalCGKP, signature ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_globalCGKP_11111:
+   [ State_11111( election, globalCGKP, signature ) ]
+  -->
+   [ State_111111( election, globalCGKP, signature ), Out( globalCGKP ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_j_111111:
+   [ State_111111( election, globalCGKP, signature ), Fr( j ) ]
+  -->
+   [ State_1111111( election, globalCGKP, j, signature ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_a1_1111111:
+   [ State_1111111( election, globalCGKP, j, signature ), Fr( a1 ) ]
+  -->
+   [ State_11111111( a1, election, globalCGKP, j, signature ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_j_a1__11111111:
+   [ State_11111111( a1, election, globalCGKP, j, signature ) ]
+  -->
+   [
+   State_111111111( a1, election, globalCGKP, j, signature ), Out( <j, a1> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_mAC1_111111111:
+   [ State_111111111( a1, election, globalCGKP, j, signature ), Fr( mAC1 ) ]
+  -->
+   [ State_1111111111( a1, election, globalCGKP, j, mAC1, signature ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_mAC2_1111111111:
+   [
+   State_1111111111( a1, election, globalCGKP, j, mAC1, signature ),
+   Fr( mAC2 )
+   ]
+  -->
+   [ State_11111111111( a1, election, globalCGKP, j, mAC1, mAC2, signature )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_mCA1_11111111111:
+   [
+   State_11111111111( a1, election, globalCGKP, j, mAC1, mAC2, signature ),
+   Fr( mCA1 )
+   ]
+  -->
+   [
+   State_111111111111( a1, election, globalCGKP, j, mAC1, mAC2, mCA1,
+                       signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_mCA2_111111111111:
+   [
+   State_111111111111( a1, election, globalCGKP, j, mAC1, mAC2, mCA1,
+                       signature
+   ),
+   Fr( mCA2 )
+   ]
+  -->
+   [
+   State_1111111111111( a1, election, globalCGKP, j, mAC1, mAC2, mCA1, mCA2,
+                        signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_mAC1_mAC2_mCA1_mCA2__1111111111111:
+   [
+   State_1111111111111( a1, election, globalCGKP, j, mAC1, mAC2, mCA1, mCA2,
+                        signature
+   )
+   ]
+  -->
+   [
+   State_11111111111111( a1, election, globalCGKP, j, mAC1, mAC2, mCA1,
+                         mCA2, signature
+   ),
+   Out( <mAC1, mAC2, mCA1, mCA2> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_pubskelection_pubsksignature__11111111111111:
+   [
+   State_11111111111111( a1, election, globalCGKP, j, mAC1, mAC2, mCA1,
+                         mCA2, signature
+   )
+   ]
+  -->
+   [
+   State_111111111111111( a1, election, globalCGKP, j, mAC1, mAC2, mCA1,
+                          mCA2, signature
+   ),
+   Out( <pub(sk(election)), pub(sk(signature))> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_locktb_111111111111111:
+   [
+   State_111111111111111( a1, election, globalCGKP, j, mAC1, mAC2, mCA1,
+                          mCA2, signature
+   ),
+   Fr( locktb )
+   ]
+  -->
+   [
+   State_1111111111111111( a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                           mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_1111111111111111:
+   [
+   State_1111111111111111( a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                           mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [
+   State_11111111111111111( a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                            mCA1, mCA2, signature
+   ),
+   State_11111111111111112( a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                            mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_11111111111111111:
+   [
+   State_11111111111111111( a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                            mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [
+   State_111111111111111111( a1, election, globalCGKP, j, locktb, mAC1,
+                             mAC2, mCA1, mCA2, signature
+   ),
+   State_111111111111111112( a1, election, globalCGKP, j, locktb, mAC1,
+                             mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_111111111111111111:
+   [
+   State_111111111111111111( a1, election, globalCGKP, j, locktb, mAC1,
+                             mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [
+   !Semistate_1111111111111111111( a1, election, globalCGKP, j, locktb,
+                                   mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_111111111111111111:
+   [
+   !Semistate_1111111111111111111( a1, election, globalCGKP, j, locktb,
+                                   mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [
+   State_1111111111111111111( a1, election, globalCGKP, j, locktb, mAC1,
+                              mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_X_J_1111111111111111111:
+   [
+   State_1111111111111111111( a1, election, globalCGKP, j, locktb, mAC1,
+                              mAC2, mCA1, mCA2, signature
+   ),
+   In( X_J )
+   ]
+  -->
+   [
+   State_11111111111111111111( X_J, a1, election, globalCGKP, j, locktb,
+                               mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_id_seed_11111111111111111111:
+   [
+   State_11111111111111111111( X_J, a1, election, globalCGKP, j, locktb,
+                               mAC1, mAC2, mCA1, mCA2, signature
+   ),
+   Fr( id_seed )
+   ]
+  -->
+   [
+   State_111111111111111111111( X_J, a1, election, globalCGKP, id_seed, j,
+                                locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_honestid_seed_111111111111111111111:
+   [
+   State_111111111111111111111( X_J, a1, election, globalCGKP, id_seed, j,
+                                locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [
+   State_1111111111111111111111( X_J, a1, election, globalCGKP, id_seed, j,
+                                 locktb, mAC1, mAC2, mCA1, mCA2, signature
+   ),
+   Out( honest(id_seed) )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_mAC1_honestid_seed_skhonestid_seed_pkhonestid_seed_X_J__1111111111111111111111[color=#569dc0]:
+   [
+   State_1111111111111111111111( X_J, a1, election, globalCGKP, id_seed, j,
+                                 locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [
+   State_11111111111111111111111( X_J, a1, election, globalCGKP, id_seed, j,
+                                  locktb, mAC1, mAC2, mCA1, mCA2, signature
+   ),
+   Out( <mAC1, honest(id_seed), sk(honest(id_seed)), pk(honest(id_seed)), 
+         X_J>
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_XmCA1_RC_Set__11111111111111111111111[color=#569dc0]:
+   [
+   State_11111111111111111111111( X_J, a1, election, globalCGKP, id_seed, j,
+                                  locktb, mAC1, mAC2, mCA1, mCA2, signature
+   ),
+   In( <XmCA1, RC_Set> )
+   ]
+  -->
+   [
+   State_111111111111111111111111( RC_Set, X_J, XmCA1, a1, election,
+                                   globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqXmCA1_mCA1_0_111111111111111111111111[color=#569dc0]:
+   [
+   State_111111111111111111111111( RC_Set, X_J, XmCA1, a1, election,
+                                   globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  --[ Pred_eq( XmCA1, mCA1 ) ]->
+   [
+   State_1111111111111111111111111( RC_Set, X_J, XmCA1, a1, election,
+                                    globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqXmCA1_mCA1_1_111111111111111111111111[color=#569dc0]:
+   [
+   State_111111111111111111111111( RC_Set, X_J, XmCA1, a1, election,
+                                   globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  --[ Pred_not_eq( XmCA1, mCA1 ) ]->
+   [
+   State_1111111111111111111111112( RC_Set, X_J, XmCA1, a1, election,
+                                    globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqRC_Set_fskglobalCGKP_wskhonestid_seed_vX_J_0_1111111111111111111111111[color=#569dc0]:
+   [
+   State_1111111111111111111111111( RC_Set, X_J, XmCA1, a1, election,
+                                    globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  --[ Pred_eq( RC_Set, f(sk(globalCGKP), w(sk(honest(id_seed)), v(X_J))) )
+  ]->
+   [
+   State_11111111111111111111111111( RC_Set, X_J, XmCA1, a1, election,
+                                     globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqRC_Set_fskglobalCGKP_wskhonestid_seed_vX_J_1_1111111111111111111111111[color=#569dc0]:
+   [
+   State_1111111111111111111111111( RC_Set, X_J, XmCA1, a1, election,
+                                    globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  --[
+  Pred_not_eq( RC_Set, f(sk(globalCGKP), w(sk(honest(id_seed)), v(X_J))) )
+  ]->
+   [
+   State_11111111111111111111111112( RC_Set, X_J, XmCA1, a1, election,
+                                     globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_Confirmedhonestid_seed_skglobalCGKP_X_J_11111111111111111111111111[color=#569dc0]:
+   [
+   State_11111111111111111111111111( RC_Set, X_J, XmCA1, a1, election,
+                                     globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  --[ Event( ), Confirmed( honest(id_seed), sk(globalCGKP), X_J ) ]->
+   [
+   State_111111111111111111111111111( RC_Set, X_J, XmCA1, a1, election,
+                                      globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_mAC2_cchonestid_seed__111111111111111111111111111[color=#569dc0]:
+   [
+   State_111111111111111111111111111( RC_Set, X_J, XmCA1, a1, election,
+                                      globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [
+   State_1111111111111111111111111111( RC_Set, X_J, XmCA1, a1, election,
+                                       globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   ),
+   Out( <mAC2, cc(honest(id_seed))> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_XmCA2_offeredFC__1111111111111111111111111111[color=#569dc0]:
+   [
+   State_1111111111111111111111111111( RC_Set, X_J, XmCA1, a1, election,
+                                       globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   ),
+   In( <XmCA2, offeredFC> )
+   ]
+  -->
+   [
+   State_11111111111111111111111111111( RC_Set, X_J, XmCA1, XmCA2, a1,
+                                        election, globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                        offeredFC, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqXmCA2_mCA2_0_11111111111111111111111111111[color=#569dc0]:
+   [
+   State_11111111111111111111111111111( RC_Set, X_J, XmCA1, XmCA2, a1,
+                                        election, globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                        offeredFC, signature
+   )
+   ]
+  --[ Pred_eq( XmCA2, mCA2 ) ]->
+   [
+   State_111111111111111111111111111111( RC_Set, X_J, XmCA1, XmCA2, a1,
+                                         election, globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                         offeredFC, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqXmCA2_mCA2_1_11111111111111111111111111111[color=#569dc0]:
+   [
+   State_11111111111111111111111111111( RC_Set, X_J, XmCA1, XmCA2, a1,
+                                        election, globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                        offeredFC, signature
+   )
+   ]
+  --[ Pred_not_eq( XmCA2, mCA2 ) ]->
+   [
+   State_111111111111111111111111111112( RC_Set, X_J, XmCA1, XmCA2, a1,
+                                         election, globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                         offeredFC, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqofferedFC_fskglobalCGKP_wskhonestid_seed_cchonestid_seed_0_111111111111111111111111111111[color=#569dc0]:
+   [
+   State_111111111111111111111111111111( RC_Set, X_J, XmCA1, XmCA2, a1,
+                                         election, globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                         offeredFC, signature
+   )
+   ]
+  --[
+  Pred_eq( offeredFC,
+           f(sk(globalCGKP), w(sk(honest(id_seed)), cc(honest(id_seed))))
+  )
+  ]->
+   [
+   State_1111111111111111111111111111111( RC_Set, X_J, XmCA1, XmCA2, a1,
+                                          election, globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                          offeredFC, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqofferedFC_fskglobalCGKP_wskhonestid_seed_cchonestid_seed_1_111111111111111111111111111111[color=#569dc0]:
+   [
+   State_111111111111111111111111111111( RC_Set, X_J, XmCA1, XmCA2, a1,
+                                         election, globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                         offeredFC, signature
+   )
+   ]
+  --[
+  Pred_not_eq( offeredFC,
+               f(sk(globalCGKP), w(sk(honest(id_seed)), cc(honest(id_seed))))
+  )
+  ]->
+   [
+   State_1111111111111111111111111111112( RC_Set, X_J, XmCA1, XmCA2, a1,
+                                          election, globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                          offeredFC, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_HappyUserhonestid_seed_skglobalCGKP_X_J_1111111111111111111111111111111[color=#569dc0]:
+   [
+   State_1111111111111111111111111111111( RC_Set, X_J, XmCA1, XmCA2, a1,
+                                          election, globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                          offeredFC, signature
+   )
+   ]
+  --[ Event( ), HappyUser( honest(id_seed), sk(globalCGKP), X_J ) ]->
+   [
+   State_11111111111111111111111111111111( RC_Set, X_J, XmCA1, XmCA2, a1,
+                                           election, globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                           offeredFC, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111111111111111111111111111111[color=#569dc0]:
+   [
+   State_11111111111111111111111111111111( RC_Set, X_J, XmCA1, XmCA2, a1,
+                                           election, globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                           offeredFC, signature
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111111111111111111111111111112[color=#569dc0]:
+   [
+   State_1111111111111111111111111111112( RC_Set, X_J, XmCA1, XmCA2, a1,
+                                          election, globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                          offeredFC, signature
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111111111111111111111111112[color=#569dc0]:
+   [
+   State_111111111111111111111111111112( RC_Set, X_J, XmCA1, XmCA2, a1,
+                                         election, globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                         offeredFC, signature
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111111111111111111111112[color=#569dc0]:
+   [
+   State_11111111111111111111111112( RC_Set, X_J, XmCA1, a1, election,
+                                     globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111111111111111111111112[color=#569dc0]:
+   [
+   State_1111111111111111111111112( RC_Set, X_J, XmCA1, a1, election,
+                                    globalCGKP, id_seed, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_111111111111111112:
+   [
+   State_111111111111111112( a1, election, globalCGKP, j, locktb, mAC1,
+                             mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [
+   !Semistate_1111111111111111121( a1, election, globalCGKP, j, locktb,
+                                   mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_111111111111111112:
+   [
+   !Semistate_1111111111111111121( a1, election, globalCGKP, j, locktb,
+                                   mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [
+   State_1111111111111111121( a1, election, globalCGKP, j, locktb, mAC1,
+                              mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_Y_J_1111111111111111121:
+   [
+   State_1111111111111111121( a1, election, globalCGKP, j, locktb, mAC1,
+                              mAC2, mCA1, mCA2, signature
+   ),
+   In( Y_J )
+   ]
+  -->
+   [
+   State_11111111111111111211( Y_J, a1, election, globalCGKP, j, locktb,
+                               mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_eid_11111111111111111211:
+   [
+   State_11111111111111111211( Y_J, a1, election, globalCGKP, j, locktb,
+                               mAC1, mAC2, mCA1, mCA2, signature
+   ),
+   Fr( eid )
+   ]
+  -->
+   [
+   State_111111111111111112111( Y_J, a1, eid, election, globalCGKP, j,
+                                locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_eid_111111111111111112111:
+   [
+   State_111111111111111112111( Y_J, a1, eid, election, globalCGKP, j,
+                                locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [
+   State_1111111111111111121111( Y_J, a1, eid, election, globalCGKP, j,
+                                 locktb, mAC1, mAC2, mCA1, mCA2, signature
+   ),
+   Out( eid )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_eid_skeid_fskglobalCGKP_wskeid_vY_J_fskglobalCGKP_wskeid_cceid_cceid__1111111111111111121111:
+   [
+   State_1111111111111111121111( Y_J, a1, eid, election, globalCGKP, j,
+                                 locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [
+   State_11111111111111111211111( Y_J, a1, eid, election, globalCGKP, j,
+                                  locktb, mAC1, mAC2, mCA1, mCA2, signature
+   ),
+   Out( <eid, sk(eid), f(sk(globalCGKP), w(sk(eid), v(Y_J))), 
+         f(sk(globalCGKP), w(sk(eid), cc(eid))), cc(eid)>
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111111111111111211111:
+   [
+   State_11111111111111111211111( Y_J, a1, eid, election, globalCGKP, j,
+                                  locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_11111111111111112:
+   [
+   State_11111111111111112( a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                            mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [
+   !Semistate_111111111111111121( a1, election, globalCGKP, j, locktb, mAC1,
+                                  mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_11111111111111112:
+   [
+   !Semistate_111111111111111121( a1, election, globalCGKP, j, locktb, mAC1,
+                                  mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [
+   State_111111111111111121( a1, election, globalCGKP, j, locktb, mAC1,
+                             mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_ClientId_C_W_EC_PkId_P__111111111111111121[color=#2cd719]:
+   [
+   State_111111111111111121( a1, election, globalCGKP, j, locktb, mAC1,
+                             mAC2, mCA1, mCA2, signature
+   ),
+   In( <ClientId, C, W, EC, PkId, P> )
+   ]
+  -->
+   [
+   State_1111111111111111211( C, ClientId, EC, P, PkId, W, a1, election,
+                              globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqPkId_pkClientId_0_1111111111111111211[color=#2cd719]:
+   [
+   State_1111111111111111211( C, ClientId, EC, P, PkId, W, a1, election,
+                              globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  --[ Pred_eq( PkId, pk(ClientId) ) ]->
+   [
+   State_11111111111111112111( C, ClientId, EC, P, PkId, W, a1, election,
+                               globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqPkId_pkClientId_1_1111111111111111211[color=#2cd719]:
+   [
+   State_1111111111111111211( C, ClientId, EC, P, PkId, W, a1, election,
+                              globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  --[ Pred_not_eq( PkId, pk(ClientId) ) ]->
+   [
+   State_11111111111111112112( C, ClientId, EC, P, PkId, W, a1, election,
+                               globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqverifPpubskelection_pkClientId_C_EC_W_P_true_0_11111111111111112111[color=#2cd719]:
+   [
+   State_11111111111111112111( C, ClientId, EC, P, PkId, W, a1, election,
+                               globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  --[ Pred_eq( verifP(pub(sk(election)), pk(ClientId), C, EC, W, P), true )
+  ]->
+   [
+   State_111111111111111121111( C, ClientId, EC, P, PkId, W, a1, election,
+                                globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqverifPpubskelection_pkClientId_C_EC_W_P_true_1_11111111111111112111[color=#2cd719]:
+   [
+   State_11111111111111112111( C, ClientId, EC, P, PkId, W, a1, election,
+                               globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  --[
+  Pred_not_eq( verifP(pub(sk(election)), pk(ClientId), C, EC, W, P), true )
+  ]->
+   [
+   State_111111111111111121112( C, ClientId, EC, P, PkId, W, a1, election,
+                                globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqverifEpubskelection_C_true_0_111111111111111121111[color=#2cd719]:
+   [
+   State_111111111111111121111( C, ClientId, EC, P, PkId, W, a1, election,
+                                globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  --[ Pred_eq( verifE(pub(sk(election)), C), true ) ]->
+   [
+   State_1111111111111111211111( C, ClientId, EC, P, PkId, W, a1, election,
+                                 globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /*
+  rule (modulo AC) if_eqverifEpubskelection_C_true_0_111111111111111121111[color=#2cd719]:
+     [
+     State_111111111111111121111( C, ClientId, EC, P, PkId, W, a1, election,
+                                  globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+     )
+     ]
+    --[ Pred_eq( z, true ) ]->
+     [
+     State_1111111111111111211111( C, ClientId, EC, P, PkId, W, a1, election,
+                                   globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+     )
+     ]
+    variants (modulo AC)
+    1. C     = C.18
+       election
+             = election.18
+       z     = verifE(pub(sk(election.18)), C.18)
+    
+    2. C     = enc(pub(sk(x.18)), x.19, x.20)
+       election
+             = x.18
+       z     = true
+  */
+
+rule (modulo E) if_eqverifEpubskelection_C_true_1_111111111111111121111[color=#2cd719]:
+   [
+   State_111111111111111121111( C, ClientId, EC, P, PkId, W, a1, election,
+                                globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  --[ Pred_not_eq( verifE(pub(sk(election)), C), true ) ]->
+   [
+   State_1111111111111111211112( C, ClientId, EC, P, PkId, W, a1, election,
+                                 globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /*
+  rule (modulo AC) if_eqverifEpubskelection_C_true_1_111111111111111121111[color=#2cd719]:
+     [
+     State_111111111111111121111( C, ClientId, EC, P, PkId, W, a1, election,
+                                  globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+     )
+     ]
+    --[ Pred_not_eq( z, true ) ]->
+     [
+     State_1111111111111111211112( C, ClientId, EC, P, PkId, W, a1, election,
+                                   globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+     )
+     ]
+    variants (modulo AC)
+    1. C     = C.18
+       election
+             = election.18
+       z     = verifE(pub(sk(election.18)), C.18)
+    
+    2. C     = enc(pub(sk(x.18)), x.19, x.20)
+       election
+             = x.18
+       z     = true
+  */
+
+rule (modulo E) lock_locktb_1111111111111111211111[color=#2cd719]:
+   [
+   State_1111111111111111211111( C, ClientId, EC, P, PkId, W, a1, election,
+                                 globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   ),
+   Fr( ~lock14 )
+   ]
+  --[ Lock( $14, ~lock14, locktb ), Lock_14( $14, ~lock14, locktb ) ]->
+   [
+   State_11111111111111112111111( ~lock14, C, ClientId, EC, P, PkId, W, a1,
+                                  election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_ClientId_11111111111111112111111[color=#2cd719]:
+   [
+   State_11111111111111112111111( ~lock14, C, ClientId, EC, P, PkId, W, a1,
+                                  election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   ),
+   Fr( ~lock13 )
+   ]
+  --[ Lock( $13, ~lock13, ClientId ), Lock_13( $13, ~lock13, ClientId ) ]->
+   [
+   State_111111111111111121111111( ~lock13, ~lock14, C, ClientId, EC, P,
+                                   PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                   signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_ClientId_as_otherB_0_111111111111111121111111[color=#2cd719]:
+   [
+   State_111111111111111121111111( ~lock13, ~lock14, C, ClientId, EC, P,
+                                   PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                   signature
+   )
+   ]
+  --[ IsIn( ClientId, otherB ) ]->
+   [
+   State_1111111111111111211111111( ~lock13, ~lock14, C, ClientId, EC, P,
+                                    PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                    otherB, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_ClientId_as_otherB_1_111111111111111121111111[color=#2cd719]:
+   [
+   State_111111111111111121111111( ~lock13, ~lock14, C, ClientId, EC, P,
+                                   PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                   signature
+   )
+   ]
+  --[ IsNotSet( ClientId ) ]->
+   [
+   State_1111111111111111211111112( ~lock13, ~lock14, C, ClientId, EC, P,
+                                    PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                    signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_ClientId_1111111111111111211111111[color=#2cd719]:
+   [
+   State_1111111111111111211111111( ~lock13, ~lock14, C, ClientId, EC, P,
+                                    PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                    otherB, signature
+   )
+   ]
+  --[ Unlock( $13, ~lock13, ClientId ), Unlock_13( $13, ~lock13, ClientId )
+  ]->
+   [
+   State_11111111111111112111111111( ~lock13, ~lock14, C, ClientId, EC, P,
+                                     PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                     otherB, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_locktb_11111111111111112111111111[color=#2cd719]:
+   [
+   State_11111111111111112111111111( ~lock13, ~lock14, C, ClientId, EC, P,
+                                     PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                     otherB, signature
+   )
+   ]
+  --[ Unlock( $14, ~lock14, locktb ), Unlock_14( $14, ~lock14, locktb ) ]->
+   [
+   State_111111111111111121111111111( ~lock13, ~lock14, C, ClientId, EC, P,
+                                      PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                      otherB, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111111111111121111111111[color=#2cd719]:
+   [
+   State_111111111111111121111111111( ~lock13, ~lock14, C, ClientId, EC, P,
+                                      PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                      otherB, signature
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_ClientId_C_W_EC_PkId_P__1111111111111111211111112[color=#2cd719]:
+   [
+   State_1111111111111111211111112( ~lock13, ~lock14, C, ClientId, EC, P,
+                                    PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                    signature
+   )
+   ]
+  --[ Insert( ClientId, <C, W, EC, PkId, P> ) ]->
+   [
+   State_11111111111111112111111121( ~lock13, ~lock14, C, ClientId, EC, P,
+                                     PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                     signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_InsertBBClientId_C_W_EC_PkId_P__11111111111111112111111121[color=#2cd719]:
+   [
+   State_11111111111111112111111121( ~lock13, ~lock14, C, ClientId, EC, P,
+                                     PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                     signature
+   )
+   ]
+  --[ Event( ), InsertBB( ClientId, <C, W, EC, PkId, P> ) ]->
+   [
+   State_111111111111111121111111211( ~lock13, ~lock14, C, ClientId, EC, P,
+                                      PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                      signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqhfskglobalCGKP_W_hfskglobalCGKP_wskClientId_vj_0_111111111111111121111111211[color=#2cd719]:
+   [
+   State_111111111111111121111111211( ~lock13, ~lock14, C, ClientId, EC, P,
+                                      PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                      signature
+   )
+   ]
+  --[
+  Pred_eq( h(f(sk(globalCGKP), W)),
+           h(f(sk(globalCGKP), w(sk(ClientId), v(j))))
+  )
+  ]->
+   [
+   State_1111111111111111211111112111( ~lock13, ~lock14, C, ClientId, EC, P,
+                                       PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                       signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqhfskglobalCGKP_W_hfskglobalCGKP_wskClientId_vj_1_111111111111111121111111211[color=#2cd719]:
+   [
+   State_111111111111111121111111211( ~lock13, ~lock14, C, ClientId, EC, P,
+                                      PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                      signature
+   )
+   ]
+  --[
+  Pred_not_eq( h(f(sk(globalCGKP), W)),
+               h(f(sk(globalCGKP), w(sk(ClientId), v(j))))
+  )
+  ]->
+   [
+   State_1111111111111111211111112112( ~lock13, ~lock14, C, ClientId, EC, P,
+                                       PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                       signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_fskglobalCGKP_W_1111111111111111211111112111[color=#2cd719]:
+   [
+   State_1111111111111111211111112111( ~lock13, ~lock14, C, ClientId, EC, P,
+                                       PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                       signature
+   )
+   ]
+  -->
+   [
+   State_11111111111111112111111121111( ~lock13, ~lock14, C, ClientId, EC,
+                                        P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1,
+                                        mCA2, signature
+   ),
+   Out( f(sk(globalCGKP), W) )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_CM_11111111111111112111111121111[color=#2cd719]:
+   [
+   State_11111111111111112111111121111( ~lock13, ~lock14, C, ClientId, EC,
+                                        P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1,
+                                        mCA2, signature
+   ),
+   In( CM )
+   ]
+  -->
+   [
+   State_111111111111111121111111211111( ~lock13, ~lock14, C, CM, ClientId,
+                                         EC, P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                                         mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqverifSpubsksignature_fskglobalCGKP_CM_signsksignature_fskglobalCGKP_wskClientId_ccClientId_true_0_111111111111111121111111211111[color=#2cd719]:
+   [
+   State_111111111111111121111111211111( ~lock13, ~lock14, C, CM, ClientId,
+                                         EC, P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                                         mCA1, mCA2, signature
+   )
+   ]
+  --[
+  Pred_eq( verifS(pub(sk(signature)), f(sk(globalCGKP), CM),
+                  sign(sk(signature), f(sk(globalCGKP), w(sk(ClientId), cc(ClientId))))),
+           true
+  )
+  ]->
+   [
+   State_1111111111111111211111112111111( ~lock13, ~lock14, C, CM, ClientId,
+                                          EC, P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                                          mCA1, mCA2, signature
+   )
+   ]
+
+  /*
+  rule (modulo AC) if_eqverifSpubsksignature_fskglobalCGKP_CM_signsksignature_fskglobalCGKP_wskClientId_ccClientId_true_0_111111111111111121111111211111[color=#2cd719]:
+     [
+     State_111111111111111121111111211111( ~lock13, ~lock14, C, CM, ClientId,
+                                           EC, P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                                           mCA1, mCA2, signature
+     )
+     ]
+    --[ Pred_eq( z, true ) ]->
+     [
+     State_1111111111111111211111112111111( ~lock13, ~lock14, C, CM, ClientId,
+                                            EC, P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                                            mCA1, mCA2, signature
+     )
+     ]
+    variants (modulo AC)
+    1. CM    = CM.21
+       ClientId
+             = ClientId.21
+       globalCGKP
+             = globalCGKP.21
+       signature
+             = signature.21
+       z     = verifS(pub(sk(signature.21)), f(sk(globalCGKP.21), CM.21),
+                      sign(sk(signature.21),
+                           f(sk(globalCGKP.21), w(sk(ClientId.21), cc(ClientId.21)))))
+    
+    2. CM    = w(sk(x.21), cc(x.21))
+       ClientId
+             = x.21
+       z     = true
+  */
+
+rule (modulo E) if_eqverifSpubsksignature_fskglobalCGKP_CM_signsksignature_fskglobalCGKP_wskClientId_ccClientId_true_1_111111111111111121111111211111[color=#2cd719]:
+   [
+   State_111111111111111121111111211111( ~lock13, ~lock14, C, CM, ClientId,
+                                         EC, P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                                         mCA1, mCA2, signature
+   )
+   ]
+  --[
+  Pred_not_eq( verifS(pub(sk(signature)), f(sk(globalCGKP), CM),
+                      sign(sk(signature), f(sk(globalCGKP), w(sk(ClientId), cc(ClientId))))),
+               true
+  )
+  ]->
+   [
+   State_1111111111111111211111112111112( ~lock13, ~lock14, C, CM, ClientId,
+                                          EC, P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                                          mCA1, mCA2, signature
+   )
+   ]
+
+  /*
+  rule (modulo AC) if_eqverifSpubsksignature_fskglobalCGKP_CM_signsksignature_fskglobalCGKP_wskClientId_ccClientId_true_1_111111111111111121111111211111[color=#2cd719]:
+     [
+     State_111111111111111121111111211111( ~lock13, ~lock14, C, CM, ClientId,
+                                           EC, P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                                           mCA1, mCA2, signature
+     )
+     ]
+    --[ Pred_not_eq( z, true ) ]->
+     [
+     State_1111111111111111211111112111112( ~lock13, ~lock14, C, CM, ClientId,
+                                            EC, P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                                            mCA1, mCA2, signature
+     )
+     ]
+    variants (modulo AC)
+    1. CM    = CM.21
+       ClientId
+             = ClientId.21
+       globalCGKP
+             = globalCGKP.21
+       signature
+             = signature.21
+       z     = verifS(pub(sk(signature.21)), f(sk(globalCGKP.21), CM.21),
+                      sign(sk(signature.21),
+                           f(sk(globalCGKP.21), w(sk(ClientId.21), cc(ClientId.21)))))
+    
+    2. CM    = w(sk(x.21), cc(x.21))
+       ClientId
+             = x.21
+       z     = true
+  */
+
+rule (modulo E) event_HasVotedpubskelection_skglobalCGKP_sksignature_ClientId_C_W_EC_PkId_P_fskglobalCGKP_CM_signsksignature_fskglobalCGKP_wskClientId_ccClientId_1111111111111111211111112111111[color=#2cd719]:
+   [
+   State_1111111111111111211111112111111( ~lock13, ~lock14, C, CM, ClientId,
+                                          EC, P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                                          mCA1, mCA2, signature
+   )
+   ]
+  --[
+  Event( ),
+  HasVoted( pub(sk(election)), sk(globalCGKP), sk(signature), ClientId,
+            <C, W, EC, PkId, P>, f(sk(globalCGKP), CM),
+            sign(sk(signature), f(sk(globalCGKP), w(sk(ClientId), cc(ClientId))))
+  )
+  ]->
+   [
+   State_11111111111111112111111121111111( ~lock13, ~lock14, C, CM,
+                                           ClientId, EC, P, PkId, W, a1, election, globalCGKP, j, locktb,
+                                           mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_fskglobalCGKP_CM_11111111111111112111111121111111[color=#2cd719]:
+   [
+   State_11111111111111112111111121111111( ~lock13, ~lock14, C, CM,
+                                           ClientId, EC, P, PkId, W, a1, election, globalCGKP, j, locktb,
+                                           mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [
+   State_111111111111111121111111211111111( ~lock13, ~lock14, C, CM,
+                                            ClientId, EC, P, PkId, W, a1, election, globalCGKP, j, locktb,
+                                            mAC1, mAC2, mCA1, mCA2, signature
+   ),
+   Out( f(sk(globalCGKP), CM) )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_ClientId_111111111111111121111111211111111[color=#2cd719]:
+   [
+   State_111111111111111121111111211111111( ~lock13, ~lock14, C, CM,
+                                            ClientId, EC, P, PkId, W, a1, election, globalCGKP, j, locktb,
+                                            mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  --[ Unlock( $13, ~lock13, ClientId ), Unlock_13( $13, ~lock13, ClientId )
+  ]->
+   [
+   State_1111111111111111211111112111111111( ~lock13, ~lock14, C, CM,
+                                             ClientId, EC, P, PkId, W, a1, election, globalCGKP, j, locktb,
+                                             mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_locktb_1111111111111111211111112111111111[color=#2cd719]:
+   [
+   State_1111111111111111211111112111111111( ~lock13, ~lock14, C, CM,
+                                             ClientId, EC, P, PkId, W, a1, election, globalCGKP, j, locktb,
+                                             mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  --[ Unlock( $14, ~lock14, locktb ), Unlock_14( $14, ~lock14, locktb ) ]->
+   [
+   State_11111111111111112111111121111111111( ~lock13, ~lock14, C, CM,
+                                              ClientId, EC, P, PkId, W, a1, election, globalCGKP, j, locktb,
+                                              mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111111111111112111111121111111111[color=#2cd719]:
+   [
+   State_11111111111111112111111121111111111( ~lock13, ~lock14, C, CM,
+                                              ClientId, EC, P, PkId, W, a1, election, globalCGKP, j, locktb,
+                                              mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_ClientId_1111111111111111211111112111112[color=#2cd719]:
+   [
+   State_1111111111111111211111112111112( ~lock13, ~lock14, C, CM, ClientId,
+                                          EC, P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2,
+                                          mCA1, mCA2, signature
+   )
+   ]
+  --[ Unlock( $13, ~lock13, ClientId ), Unlock_13( $13, ~lock13, ClientId )
+  ]->
+   [
+   State_11111111111111112111111121111121( ~lock13, ~lock14, C, CM,
+                                           ClientId, EC, P, PkId, W, a1, election, globalCGKP, j, locktb,
+                                           mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_locktb_11111111111111112111111121111121[color=#2cd719]:
+   [
+   State_11111111111111112111111121111121( ~lock13, ~lock14, C, CM,
+                                           ClientId, EC, P, PkId, W, a1, election, globalCGKP, j, locktb,
+                                           mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  --[ Unlock( $14, ~lock14, locktb ), Unlock_14( $14, ~lock14, locktb ) ]->
+   [
+   State_111111111111111121111111211111211( ~lock13, ~lock14, C, CM,
+                                            ClientId, EC, P, PkId, W, a1, election, globalCGKP, j, locktb,
+                                            mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111111111111121111111211111211[color=#2cd719]:
+   [
+   State_111111111111111121111111211111211( ~lock13, ~lock14, C, CM,
+                                            ClientId, EC, P, PkId, W, a1, election, globalCGKP, j, locktb,
+                                            mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_ClientId_1111111111111111211111112112[color=#2cd719]:
+   [
+   State_1111111111111111211111112112( ~lock13, ~lock14, C, ClientId, EC, P,
+                                       PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2,
+                                       signature
+   )
+   ]
+  --[ Unlock( $13, ~lock13, ClientId ), Unlock_13( $13, ~lock13, ClientId )
+  ]->
+   [
+   State_11111111111111112111111121121( ~lock13, ~lock14, C, ClientId, EC,
+                                        P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1,
+                                        mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_locktb_11111111111111112111111121121[color=#2cd719]:
+   [
+   State_11111111111111112111111121121( ~lock13, ~lock14, C, ClientId, EC,
+                                        P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1,
+                                        mCA2, signature
+   )
+   ]
+  --[ Unlock( $14, ~lock14, locktb ), Unlock_14( $14, ~lock14, locktb ) ]->
+   [
+   State_111111111111111121111111211211( ~lock13, ~lock14, C, ClientId, EC,
+                                         P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1,
+                                         mCA2, signature
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111111111111121111111211211[color=#2cd719]:
+   [
+   State_111111111111111121111111211211( ~lock13, ~lock14, C, ClientId, EC,
+                                         P, PkId, W, a1, election, globalCGKP, j, locktb, mAC1, mAC2, mCA1,
+                                         mCA2, signature
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111111111111111211112[color=#2cd719]:
+   [
+   State_1111111111111111211112( C, ClientId, EC, P, PkId, W, a1, election,
+                                 globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111111111111121112[color=#2cd719]:
+   [
+   State_111111111111111121112( C, ClientId, EC, P, PkId, W, a1, election,
+                                globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111111111111112112[color=#2cd719]:
+   [
+   State_11111111111111112112( C, ClientId, EC, P, PkId, W, a1, election,
+                               globalCGKP, j, locktb, mAC1, mAC2, mCA1, mCA2, signature
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+restriction set_in:
+  "∀ x y #t3.
+    (IsIn( x, y ) @ #t3) ⇒
+    (∃ #t2.
+      (((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ∧
+       (∀ #t1. (Delete( x ) @ #t1) ⇒ ((#t1 < #t2) ∨ (#t3 < #t1)))) ∧
+      (∀ #t1 yp.
+        (Insert( x, yp ) @ #t1) ⇒ (((#t1 < #t2) ∨ (#t1 = #t2)) ∨ (#t3 < #t1))))"
+
+restriction set_notin:
+  "∀ x #t3.
+    (IsNotSet( x ) @ #t3) ⇒
+    ((∀ #t1 y. (Insert( x, y ) @ #t1) ⇒ (#t3 < #t1)) ∨
+     (∃ #t1.
+       ((Delete( x ) @ #t1) ∧ (#t1 < #t3)) ∧
+       (∀ #t2 y. ((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ⇒ (#t2 < #t1))))"
+
+restriction predicate_eq:
+  "∀ #i a b. (Pred_eq( a, b ) @ #i) ⇒ (a = b)"
+  // safety formula
+
+restriction predicate_not_eq:
+  "∀ #i a b. (Pred_not_eq( a, b ) @ #i) ⇒ (¬(a = b))"
+  // safety formula
+
+restriction single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+restriction locking_14:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_14( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_14( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+restriction locking_13:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_13( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_13( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+lemma single_vote:
+  all-traces
+  "¬(∃ Id B1 B2 #i #j.
+      ((InsertBB( Id, B1 ) @ #i) ∧ (InsertBB( Id, B2 ) @ #j)) ∧ (¬(B1 = B2)))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ Id B1 B2 #i #j.
+  (InsertBB( Id, B1 ) @ #i) ∧ (InsertBB( Id, B2 ) @ #j) ∧ ¬(B1 = B2)"
+*/
+by sorry
+
+lemma cast_as_intended:
+  all-traces
+  "∀ Pke K1 Sks Id1 B3 FC1 CRFid1 #i.
+    (HasVoted( Pke, K1, Sks, honest(Id1), B3, FC1, CRFid1 ) @ #i) ⇒
+    (∃ Z_J #j.
+      ((Confirmed( honest(Id1), K1, Z_J ) @ #j) ∧
+       (B3 = <C1, W1, EC0, pub(sk(honest(Id1))), P1>)) ∧
+      (C1 = enc(Pke, phi(v(Z_J)), R)))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ Pke K1 Sks Id1 B3 FC1 CRFid1 #i.
+  (HasVoted( Pke, K1, Sks, honest(Id1), B3, FC1, CRFid1 ) @ #i)
+ ∧
+  ∀ Z_J #j.
+   (Confirmed( honest(Id1), K1, Z_J ) @ #j) ∧
+   (B3 = <C1, W1, EC0, pub(sk(honest(Id1))), P1>) ∧
+   (C1 = enc(Pke, phi(v(Z_J)), R))
+  ⇒
+   ⊥"
+*/
+by sorry
+
+lemma tallied_as_cast:
+  all-traces
+  "∀ Id2 K2 T_J #i.
+    (HappyUser( Id2, K2, T_J ) @ #i) ⇒
+    (∃ Pke Sks B4 FC2 CRFid2 C2 W2 EC1 EC2 P2 R #j.
+      (((((((HasVoted( Pke, K2, Sks, Id2, B4, FC2, CRFid2 ) @ #j) ∧
+            (B4 = <C2, W2, EC1, pub(sk(Id2)), P2>)) ∧
+           (C2 = enc(Pke, phi(v(T_J)), R))) ∧
+          (W2 = w(sk(Id2), v(T_J)))) ∧
+         ((EC1 = w(sk(Id2), cut(enc(Pke, phi(v(T_J)), R)))) ∨
+          (EC1 = cut(enc(Pke, phi(w(sk(Id2), v(T_J))), R))))) ∧
+        (P2 = zkp(Pke, pub(sk(Id2)), C2, EC2, W2, R, sk(Id2)))) ∧
+       ((EC2 = w(sk(Id2), cut(enc(Pke, phi(v(T_J)), R)))) ∨
+        (EC2 = cut(enc(Pke, phi(w(sk(Id2), v(T_J))), R))))) ∧
+      (CRFid2 = sign(Sks, FC2)))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ Id2 K2 T_J #i.
+  (HappyUser( Id2, K2, T_J ) @ #i)
+ ∧
+  ∀ Pke Sks B4 FC2 CRFid2 C2 W2 EC1 EC2 P2 R #j.
+   (HasVoted( Pke, K2, Sks, Id2, B4, FC2, CRFid2 ) @ #j) ∧
+   (B4 = <C2, W2, EC1, pub(sk(Id2)), P2>) ∧
+   (C2 = enc(Pke, phi(v(T_J)), R)) ∧
+   (W2 = w(sk(Id2), v(T_J))) ∧
+   (P2 = zkp(Pke, pub(sk(Id2)), C2, EC2, W2, R, sk(Id2))) ∧
+   (CRFid2 = sign(Sks, FC2))
+  ⇒
+   (((¬(EC1 = w(sk(Id2), cut(enc(Pke, phi(v(T_J)), R))))) ∧
+     (¬(EC1 = cut(enc(Pke, phi(w(sk(Id2), v(T_J))), R))))) ∨
+    ((¬(EC2 = w(sk(Id2), cut(enc(Pke, phi(v(T_J)), R))))) ∧
+     (¬(EC2 = cut(enc(Pke, phi(w(sk(Id2), v(T_J))), R))))))"
+*/
+by sorry
+
+/*
+WARNING: the following wellformedness checks failed!
+
+unbound:
+  rule `lookup_ClientId_as_otherB_0_111111111111111121111111' has unbound variables: 
+    otherB
+
+Restriction actions:
+  restriction `set_in' references action 
+    (ProtoFact Linear "Delete" 1,1,Linear)
+  but no rule has such an action.
+  
+  restriction `set_notin' references action 
+    (ProtoFact Linear "Delete" 1,1,Linear)
+  but no rule has such an action.
+
+Formula terms:
+  lemma `cast_as_intended' uses terms of the wrong form:
+    `pair(Free C1,pair(Free W1,pair(Free EC0,pair(pub(sk(honest(Bound 6))),Free P1))))',
+    `Free C1', `enc(Bound 9,phi(v(Bound 1)),Free R)'
+  
+  The only allowed terms are public names and bound node and message
+  variables. If you encounter free message variables, then you might
+  have forgotten a #-prefix. Sort prefixes can only be dropped where
+  this is unambiguous. Moreover, reducible function symbols are
+  disallowed.
+*/
+
+end

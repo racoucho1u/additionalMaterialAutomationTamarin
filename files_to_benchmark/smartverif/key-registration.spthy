@@ -1,0 +1,521 @@
+theory KeyRegistration begin
+
+// Function signature and definition of the equational theory E
+
+functions: check_rep/2, fst/1, get_rep/1, pair/2, pk/1, rep/2 [private],
+           sign/2, snd/1, true/0, verify/3
+equations:
+    check_rep(rep(m, loc), loc) = m,
+    fst(<x.1, x.2>) = x.1,
+    get_rep(rep(m, loc)) = m,
+    snd(<x.1, x.2>) = x.2,
+    verify(sign(x.1, x.2), x.1, pk(x.2)) = true
+
+section{* The Key Registration protocol *}
+
+rule (modulo E) Init_:
+   [ ] --[ Init( ) ]-> [ State_( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_:
+   [ State_( ) ] --> [ !Semistate_1( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_:
+   [ !Semistate_1( ) ] --> [ State_1( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_skS_1:
+   [ State_1( ), Fr( skS ) ] --> [ State_11( skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_11:
+   [ State_11( skS ) ] --> [ State_111( skS ), State_112( skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_111:
+   [ State_111( skS ) ] --> [ !Semistate_1111( skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_111:
+   [ !Semistate_1111( skS ) ] --> [ State_1111( skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_A_pkskA__1111[color=#569dc0]:
+   [ State_1111( skS ), In( <A, pk(skA)> ) ]
+  -->
+   [ State_11111( A, skA, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_sign_renew_A_pknew_skA_skA_11111[color=#569dc0]:
+   [ State_11111( A, skA, skS ), In( sign(<'renew', A, pk(new_skA)>, skA) )
+   ]
+  -->
+   [ State_111111( A, new_skA, skA, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_valid_skS_A__111111[color=#569dc0]:
+   [ State_111111( A, new_skA, skA, skS ), Fr( ~lock12 ) ]
+  --[
+  Lock( $12, ~lock12, <'valid', skS, A> ),
+  Lock_12( $12, ~lock12, <'valid', skS, A> )
+  ]->
+   [ State_1111111( ~lock12, A, new_skA, skA, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_valid_skS_A_as_pkA2_0_1111111[color=#569dc0]:
+   [ State_1111111( ~lock12, A, new_skA, skA, skS ) ]
+  --[ IsIn( <'valid', skS, A>, pkA2 ) ]->
+   [ State_11111111( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_valid_skS_A_as_pkA2_1_1111111[color=#569dc0]:
+   [ State_1111111( ~lock12, A, new_skA, skA, skS ) ]
+  --[ IsNotSet( <'valid', skS, A> ) ]->
+   [ State_11111112( ~lock12, A, new_skA, skA, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqpkA2_pkskA_0_11111111[color=#569dc0]:
+   [ State_11111111( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+  --[ Pred_eq( pkA2, pk(skA) ) ]->
+   [ State_111111111( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqpkA2_pkskA_1_11111111[color=#569dc0]:
+   [ State_11111111( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+  --[ Pred_not_eq( pkA2, pk(skA) ) ]->
+   [ State_111111112( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqpkskA_pknew_skA_0_111111111[color=#569dc0]:
+   [ State_111111111( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+  --[ Pred_eq( pk(skA), pk(new_skA) ) ]->
+   [ State_1111111111( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqpkskA_pknew_skA_1_111111111[color=#569dc0]:
+   [ State_111111111( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+  --[ Pred_not_eq( pk(skA), pk(new_skA) ) ]->
+   [ State_1111111112( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111111111[color=#569dc0]:
+   [ State_1111111111( ~lock12, A, new_skA, pkA2, skA, skS ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_revoked_skS_A_pknew_skA_as_v_0_1111111112[color=#569dc0]:
+   [ State_1111111112( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+  --[ IsIn( <'revoked', skS, A, pk(new_skA)>, v ) ]->
+   [ State_11111111121( ~lock12, A, new_skA, pkA2, skA, skS, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_revoked_skS_A_pknew_skA_as_v_1_1111111112[color=#569dc0]:
+   [ State_1111111112( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+  --[ IsNotSet( <'revoked', skS, A, pk(new_skA)> ) ]->
+   [ State_11111111122( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_Error__11111111121[color=#569dc0]:
+   [ State_11111111121( ~lock12, A, new_skA, pkA2, skA, skS, v ) ]
+  -->
+   [
+   State_111111111211( ~lock12, A, new_skA, pkA2, skA, skS, v ),
+   Out( 'Error' )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_valid_skS_A__111111111211[color=#569dc0]:
+   [ State_111111111211( ~lock12, A, new_skA, pkA2, skA, skS, v ) ]
+  --[
+  Unlock( $12, ~lock12, <'valid', skS, A> ),
+  Unlock_12( $12, ~lock12, <'valid', skS, A> )
+  ]->
+   [ State_1111111112111( ~lock12, A, new_skA, pkA2, skA, skS, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111111112111[color=#569dc0]:
+   [ State_1111111112111( ~lock12, A, new_skA, pkA2, skA, skS, v ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_RevokedpkskA_11111111122[color=#569dc0]:
+   [ State_11111111122( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+  --[ Event( ), Revoked( pk(skA) ) ]->
+   [ State_111111111221( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) delete_valid_skS_A__111111111221[color=#569dc0]:
+   [ State_111111111221( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+  --[ Delete( <'valid', skS, A> ) ]->
+   [ State_1111111112211( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_valid_skS_A_pknew_skA_1111111112211[color=#569dc0]:
+   [ State_1111111112211( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+  --[ Insert( <'valid', skS, A>, pk(new_skA) ) ]->
+   [ State_11111111122111( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_revoked_skS_A_pknew_skA_true__11111111122111[color=#569dc0]:
+   [ State_11111111122111( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+  --[ Insert( <'revoked', skS, A, pk(new_skA)>, 'true' ) ]->
+   [ State_111111111221111( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_valid_skS_A__111111111221111[color=#569dc0]:
+   [ State_111111111221111( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+  --[
+  Unlock( $12, ~lock12, <'valid', skS, A> ),
+  Unlock_12( $12, ~lock12, <'valid', skS, A> )
+  ]->
+   [ State_1111111112211111( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_sign_confirm_sign_renew_A_pknew_skA_skA_skS_1111111112211111[color=#569dc0]:
+   [ State_1111111112211111( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+  -->
+   [
+   State_11111111122111111( ~lock12, A, new_skA, pkA2, skA, skS ),
+   Out( sign(<'confirm', sign(<'renew', A, pk(new_skA)>, skA)>, skS) )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111111122111111[color=#569dc0]:
+   [ State_11111111122111111( ~lock12, A, new_skA, pkA2, skA, skS ) ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111112[color=#569dc0]:
+   [ State_111111112( ~lock12, A, new_skA, pkA2, skA, skS ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111112[color=#569dc0]:
+   [ State_11111112( ~lock12, A, new_skA, skA, skS ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_112:
+   [ State_112( skS ) ] --> [ !Semistate_1121( skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_112:
+   [ !Semistate_1121( skS ) ] --> [ State_1121( skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_A_1121:
+   [ State_1121( skS ), Fr( A ) ] --> [ State_11211( A, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_11211:
+   [ State_11211( A, skS ) ]
+  -->
+   [ State_112111( A, skS ), State_112112( A, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_112111:
+   [ State_112111( A, skS ) ]
+  -->
+   [ State_1121111( A, skS ), State_1121112( A, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_A_1121111:
+   [ State_1121111( A, skS ) ] --> [ State_11211111( A, skS ), Out( A ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11211111:
+   [ State_11211111( A, skS ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_k_1121112[color=#2cd719]:
+   [ State_1121112( A, skS ), Fr( k ) ] --> [ State_11211121( A, k, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_Honestk_11211121[color=#2cd719]:
+   [ State_11211121( A, k, skS ) ]
+  --[ Event( ), Honest( k ) ]->
+   [ State_112111211( A, k, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_client_A_k_112111211[color=#2cd719]:
+   [ State_112111211( A, k, skS ) ]
+  --[ Insert( <'client', A>, k ) ]->
+   [ State_1121112111( A, k, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_valid_skS_A_pkk_1121112111[color=#2cd719]:
+   [ State_1121112111( A, k, skS ) ]
+  --[ Insert( <'valid', skS, A>, pk(k) ) ]->
+   [ State_11211121111( A, k, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_pkk_11211121111[color=#2cd719]:
+   [ State_11211121111( A, k, skS ) ]
+  -->
+   [ State_112111211111( A, k, skS ), Out( pk(k) ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_112111211111[color=#2cd719]:
+   [ State_112111211111( A, k, skS ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_112112:
+   [ State_112112( A, skS ) ] --> [ !Semistate_1121121( A, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_112112:
+   [ !Semistate_1121121( A, skS ) ] --> [ State_1121121( A, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_k2_1121121[color=#11ec28]:
+   [ State_1121121( A, skS ), Fr( k2 ) ]
+  -->
+   [ State_11211211( A, k2, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_Honestk2_11211211[color=#11ec28]:
+   [ State_11211211( A, k2, skS ) ]
+  --[ Event( ), Honest( k2 ) ]->
+   [ State_112112111( A, k2, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_client_A__112112111[color=#11ec28]:
+   [ State_112112111( A, k2, skS ), Fr( ~lock10 ) ]
+  --[
+  Lock( $10, ~lock10, <'client', A> ),
+  Lock_10( $10, ~lock10, <'client', A> )
+  ]->
+   [ State_1121121111( ~lock10, A, k2, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_client_A_as_k_0_1121121111[color=#11ec28]:
+   [ State_1121121111( ~lock10, A, k2, skS ) ]
+  --[ IsIn( <'client', A>, k ) ]->
+   [ State_11211211111( ~lock10, A, k, k2, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_client_A_as_k_1_1121121111[color=#11ec28]:
+   [ State_1121121111( ~lock10, A, k2, skS ) ]
+  --[ IsNotSet( <'client', A> ) ]->
+   [ State_11211211112( ~lock10, A, k2, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_A_pkk__11211211111[color=#11ec28]:
+   [ State_11211211111( ~lock10, A, k, k2, skS ) ]
+  -->
+   [ State_112112111111( ~lock10, A, k, k2, skS ), Out( <A, pk(k)> ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_sign_renew_A_pkk2_k_pkk2__112112111111[color=#11ec28]:
+   [ State_112112111111( ~lock10, A, k, k2, skS ) ]
+  -->
+   [
+   State_1121121111111( ~lock10, A, k, k2, skS ),
+   Out( <sign(<'renew', A, pk(k2)>, k), pk(k2)> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_sign_confirm_sig2_skS_1121121111111[color=#11ec28]:
+   [
+   State_1121121111111( ~lock10, A, k, k2, skS ),
+   In( sign(<'confirm', sig2>, skS) )
+   ]
+  -->
+   [ State_11211211111111( ~lock10, A, k, k2, sig2, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqsign_renew_A_pkk2_k_sig2_0_11211211111111[color=#11ec28]:
+   [ State_11211211111111( ~lock10, A, k, k2, sig2, skS ) ]
+  --[ Pred_eq( sign(<'renew', A, pk(k2)>, k), sig2 ) ]->
+   [ State_112112111111111( ~lock10, A, k, k2, sig2, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqsign_renew_A_pkk2_k_sig2_1_11211211111111[color=#11ec28]:
+   [ State_11211211111111( ~lock10, A, k, k2, sig2, skS ) ]
+  --[ Pred_not_eq( sign(<'renew', A, pk(k2)>, k), sig2 ) ]->
+   [ State_112112111111112( ~lock10, A, k, k2, sig2, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_k_112112111111111[color=#11ec28]:
+   [ State_112112111111111( ~lock10, A, k, k2, sig2, skS ) ]
+  -->
+   [ State_1121121111111111( ~lock10, A, k, k2, sig2, skS ), Out( k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_client_A_k2_1121121111111111[color=#11ec28]:
+   [ State_1121121111111111( ~lock10, A, k, k2, sig2, skS ) ]
+  --[ Insert( <'client', A>, k2 ) ]->
+   [ State_11211211111111111( ~lock10, A, k, k2, sig2, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_client_A__11211211111111111[color=#11ec28]:
+   [ State_11211211111111111( ~lock10, A, k, k2, sig2, skS ) ]
+  --[
+  Unlock( $10, ~lock10, <'client', A> ),
+  Unlock_10( $10, ~lock10, <'client', A> )
+  ]->
+   [ State_112112111111111111( ~lock10, A, k, k2, sig2, skS ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_112112111111111111[color=#11ec28]:
+   [ State_112112111111111111( ~lock10, A, k, k2, sig2, skS ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_112112111111112[color=#11ec28]:
+   [ State_112112111111112( ~lock10, A, k, k2, sig2, skS ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11211211112[color=#11ec28]:
+   [ State_11211211112( ~lock10, A, k2, skS ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+restriction set_in:
+  "∀ x y #t3.
+    (IsIn( x, y ) @ #t3) ⇒
+    (∃ #t2.
+      (((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ∧
+       (∀ #t1. (Delete( x ) @ #t1) ⇒ ((#t1 < #t2) ∨ (#t3 < #t1)))) ∧
+      (∀ #t1 yp.
+        (Insert( x, yp ) @ #t1) ⇒ (((#t1 < #t2) ∨ (#t1 = #t2)) ∨ (#t3 < #t1))))"
+
+restriction set_notin:
+  "∀ x #t3.
+    (IsNotSet( x ) @ #t3) ⇒
+    ((∀ #t1 y. (Insert( x, y ) @ #t1) ⇒ (#t3 < #t1)) ∨
+     (∃ #t1.
+       ((Delete( x ) @ #t1) ∧ (#t1 < #t3)) ∧
+       (∀ #t2 y. ((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ⇒ (#t2 < #t1))))"
+
+restriction predicate_eq:
+  "∀ #i a b. (Pred_eq( a, b ) @ #i) ⇒ (a = b)"
+  // safety formula
+
+restriction predicate_not_eq:
+  "∀ #i a b. (Pred_not_eq( a, b ) @ #i) ⇒ (¬(a = b))"
+  // safety formula
+
+restriction single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+restriction locking_12:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_12( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_12( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+restriction locking_10:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_10( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_10( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+lemma honest_revoked:
+  all-traces
+  "∀ #i #j sk.
+    ((Honest( sk ) @ #i) ∧ (!KU( sk ) @ #j)) ⇒
+    (∃ #k. (Revoked( pk(sk) ) @ #k) ∧ (#k < #j))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ #i #j sk.
+  (Honest( sk ) @ #i) ∧ (!KU( sk ) @ #j)
+ ∧
+  ∀ #k. (Revoked( pk(sk) ) @ #k) ⇒ ¬(#k < #j)"
+*/
+by sorry
+
+/*
+WARNING: the following wellformedness checks failed!
+
+unbound:
+  rule `lookup_valid_skS_A_as_pkA2_0_1111111' has unbound variables: 
+    pkA2
+  
+  rule `lookup_revoked_skS_A_pknew_skA_as_v_0_1111111112' has unbound variables: 
+    v
+  
+  rule `lookup_client_A_as_k_0_1121121111' has unbound variables: 
+    k
+*/
+
+end

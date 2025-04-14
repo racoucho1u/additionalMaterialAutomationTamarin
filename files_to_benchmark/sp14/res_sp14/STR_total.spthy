@@ -1,0 +1,18 @@
+maude tool: 'maude'
+ checking version: 2.7.1. OK.
+ checking installation: OK.
+
+==============================================================================
+summary of summaries:
+
+analyzed: STR.spthy
+
+  output:          ./res_sp14/STRrecap.spthy
+  processing time: 0.022017157s
+  
+  WARNING: 1 wellformedness check failed!
+           The analysis results might be wrong!
+
+==============================================================================
+0.09user 0.07system 0:00.09elapsed 181%CPU (0avgtext+0avgdata 30704maxresident)k
+16inputs+24outputs (0major+8270minor)pagefaults 0swaps

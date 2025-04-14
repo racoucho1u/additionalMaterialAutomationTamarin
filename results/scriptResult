@@ -1,0 +1,54 @@
+Cannot prove lemma Exp_nonce_or_product2 (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma Exp_subterm	-Dsecure (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma ExpKeyFor_one (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma Relate_KeyFor_RoundKey (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma Exp_earlier_Esk_2 (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma Exp_factor_secret (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma key_secret_last (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma Exp_name_secret	-Dsecure (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma Esk_Exp_same_gid (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma key_secret (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma key_reachable_4	-Dexecutable4 (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma key_reachable_5	-Dexecutable5 (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Finished
+Cannot prove lemma Exp_subterm	-Dsecure (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma ExpKeyFor_one (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma Exp_nonce_or_product2 (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma Exp_earlier_Esk_2 (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma Relate_KeyFor_RoundKey (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma Esk_Exp_same_gid (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma Exp_name_secret	-Dsecure (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma Exp_factor_secret (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma key_secret_last (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma key_secret (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma key_reachable_4	-Dexecutable4 (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Cannot prove lemma key_reachable_5	-Dexecutable5 (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+
+Finished
+Prove lemma Exp_earlier_Esk_2 (file:files_to_benchmark/sp14/GDH.spthy) with heuristic: s.
+
+Cannot prove lemma Exp_subterm	-Dsecure (file:files_to_benchmark/sp14/GDH.spthy) after 1 attempts (timeout=10s): problem in the tactic generation.
+

@@ -1,0 +1,537 @@
+theory CANauthsimpler begin
+
+// Function signature and definition of the equational theory E
+
+builtins: multiset
+functions: check_rep/2, fst/1, get_rep/1, hmac/2, pair/2,
+           rep/2 [private], snd/1
+equations:
+    check_rep(rep(m, loc), loc) = m,
+    fst(<x.1, x.2>) = x.1,
+    get_rep(rep(m, loc)) = m,
+    snd(<x.1, x.2>) = x.2
+
+
+section{* CANauth protocol, simpler version *}
+
+rule (modulo E) Init_:
+   [ ] --[ Init( ) ]-> [ State_( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_cellA_zero__:
+   [ State_( ) ] --[ Insert( 'cellA', 'zero' ) ]-> [ State_1( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_cellB_zero__1:
+   [ State_1( ) ] --[ Insert( 'cellB', 'zero' ) ]-> [ State_11( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_sk_11:
+   [ State_11( ), Fr( sk ) ] --> [ State_111( sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_111:
+   [ State_111( sk ) ] --> [ !Semistate_1111( sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_111:
+   [ !Semistate_1111( sk ) ] --> [ State_1111( sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_1111:
+   [ State_1111( sk ) ] --> [ State_11111( sk ), State_11112( sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_11111:
+   [ State_11111( sk ) ] --> [ State_111111( sk ), State_111112( sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_111111:
+   [ State_111111( sk ) ] --> [ State_1111111( sk ), State_1111112( sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_cellA__1111111[color=#569dc0]:
+   [ State_1111111( sk ), Fr( ~lock9 ) ]
+  --[ Lock( $9, ~lock9, 'cellA' ), Lock_9( $9, ~lock9, 'cellA' ) ]->
+   [ State_11111111( ~lock9, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_cellA_as_i_0_11111111[color=#569dc0]:
+   [ State_11111111( ~lock9, sk ) ]
+  --[ IsIn( 'cellA', i ) ]->
+   [ State_111111111( ~lock9, i, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_cellA_as_i_1_11111111[color=#569dc0]:
+   [ State_11111111( ~lock9, sk ) ]
+  --[ IsNotSet( 'cellA' ) ]->
+   [ State_111111112( ~lock9, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_msg_SIGN_j_h__111111111[color=#569dc0]:
+   [ State_111111111( ~lock9, i, sk ), In( <msg, 'SIGN', j, h> ) ]
+  -->
+   [ State_1111111111( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqj_i__one__0_1111111111[color=#569dc0]:
+   [ State_1111111111( ~lock9, h, i, j, msg, sk ) ]
+  --[ Pred_eq( j, ('one'+i) ) ]->
+   [ State_11111111111( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqj_i__one__1_1111111111[color=#569dc0]:
+   [ State_1111111111( ~lock9, h, i, j, msg, sk ) ]
+  --[ Pred_not_eq( j, ('one'+i) ) ]->
+   [ State_11111111112( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqh_hmacsk_j_msg__0_11111111111[color=#569dc0]:
+   [ State_11111111111( ~lock9, h, i, j, msg, sk ) ]
+  --[ Pred_eq( h, hmac(sk, <j, msg>) ) ]->
+   [ State_111111111111( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqh_hmacsk_j_msg__1_11111111111[color=#569dc0]:
+   [ State_11111111111( ~lock9, h, i, j, msg, sk ) ]
+  --[ Pred_not_eq( h, hmac(sk, <j, msg>) ) ]->
+   [ State_111111111112( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_Receivedsk_msg_j_111111111111[color=#569dc0]:
+   [ State_111111111111( ~lock9, h, i, j, msg, sk ) ]
+  --[ Event( ), Received( sk, msg, j ) ]->
+   [ State_1111111111111( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_cellA_i__one__1111111111111[color=#569dc0]:
+   [ State_1111111111111( ~lock9, h, i, j, msg, sk ) ]
+  --[ Insert( 'cellA', ('one'+i) ) ]->
+   [ State_11111111111111( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_cellA__11111111111111[color=#569dc0]:
+   [ State_11111111111111( ~lock9, h, i, j, msg, sk ) ]
+  --[ Unlock( $9, ~lock9, 'cellA' ), Unlock_9( $9, ~lock9, 'cellA' ) ]->
+   [ State_111111111111111( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111111111111[color=#569dc0]:
+   [ State_111111111111111( ~lock9, h, i, j, msg, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_cellA__111111111112[color=#569dc0]:
+   [ State_111111111112( ~lock9, h, i, j, msg, sk ) ]
+  --[ Unlock( $9, ~lock9, 'cellA' ), Unlock_9( $9, ~lock9, 'cellA' ) ]->
+   [ State_1111111111121( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111111111121[color=#569dc0]:
+   [ State_1111111111121( ~lock9, h, i, j, msg, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_cellA__11111111112[color=#569dc0]:
+   [ State_11111111112( ~lock9, h, i, j, msg, sk ) ]
+  --[ Unlock( $9, ~lock9, 'cellA' ), Unlock_9( $9, ~lock9, 'cellA' ) ]->
+   [ State_111111111121( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111111121[color=#569dc0]:
+   [ State_111111111121( ~lock9, h, i, j, msg, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111112[color=#569dc0]:
+   [ State_111111112( ~lock9, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_cellA__1111112[color=#2cd719]:
+   [ State_1111112( sk ), Fr( ~lock8 ) ]
+  --[ Lock( $8, ~lock8, 'cellA' ), Lock_8( $8, ~lock8, 'cellA' ) ]->
+   [ State_11111121( ~lock8, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_cellA_as_i_0_11111121[color=#2cd719]:
+   [ State_11111121( ~lock8, sk ) ]
+  --[ IsIn( 'cellA', i ) ]->
+   [ State_111111211( ~lock8, i, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_cellA_as_i_1_11111121[color=#2cd719]:
+   [ State_11111121( ~lock8, sk ) ]
+  --[ IsNotSet( 'cellA' ) ]->
+   [ State_111111212( ~lock8, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_msg_111111211[color=#2cd719]:
+   [ State_111111211( ~lock8, i, sk ), Fr( msg ) ]
+  -->
+   [ State_1111112111( ~lock8, i, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_Sentsk_msg_i__one__1111112111[color=#2cd719]:
+   [ State_1111112111( ~lock8, i, msg, sk ) ]
+  --[ Event( ), Sent( sk, msg, ('one'+i) ) ]->
+   [ State_11111121111( ~lock8, i, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_msg_SIGN_i__one__hmacsk_i__one__msg___11111121111[color=#2cd719]:
+   [ State_11111121111( ~lock8, i, msg, sk ) ]
+  -->
+   [
+   State_111111211111( ~lock8, i, msg, sk ),
+   Out( <msg, 'SIGN', ('one'+i), hmac(sk, <('one'+i), msg>)> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_cellA_i__one__111111211111[color=#2cd719]:
+   [ State_111111211111( ~lock8, i, msg, sk ) ]
+  --[ Insert( 'cellA', ('one'+i) ) ]->
+   [ State_1111112111111( ~lock8, i, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_cellA__1111112111111[color=#2cd719]:
+   [ State_1111112111111( ~lock8, i, msg, sk ) ]
+  --[ Unlock( $8, ~lock8, 'cellA' ), Unlock_8( $8, ~lock8, 'cellA' ) ]->
+   [ State_11111121111111( ~lock8, i, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111121111111[color=#2cd719]:
+   [ State_11111121111111( ~lock8, i, msg, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111212[color=#2cd719]:
+   [ State_111111212( ~lock8, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_cellB__111112[color=#11ec28]:
+   [ State_111112( sk ), Fr( ~lock9 ) ]
+  --[ Lock( $9, ~lock9, 'cellB' ), Lock_9( $9, ~lock9, 'cellB' ) ]->
+   [ State_1111121( ~lock9, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_cellB_as_i_0_1111121[color=#11ec28]:
+   [ State_1111121( ~lock9, sk ) ]
+  --[ IsIn( 'cellB', i ) ]->
+   [ State_11111211( ~lock9, i, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_cellB_as_i_1_1111121[color=#11ec28]:
+   [ State_1111121( ~lock9, sk ) ]
+  --[ IsNotSet( 'cellB' ) ]->
+   [ State_11111212( ~lock9, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_msg_SIGN_j_h__11111211[color=#11ec28]:
+   [ State_11111211( ~lock9, i, sk ), In( <msg, 'SIGN', j, h> ) ]
+  -->
+   [ State_111112111( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqj_i__one__0_111112111[color=#11ec28]:
+   [ State_111112111( ~lock9, h, i, j, msg, sk ) ]
+  --[ Pred_eq( j, ('one'+i) ) ]->
+   [ State_1111121111( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqj_i__one__1_111112111[color=#11ec28]:
+   [ State_111112111( ~lock9, h, i, j, msg, sk ) ]
+  --[ Pred_not_eq( j, ('one'+i) ) ]->
+   [ State_1111121112( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqh_hmacsk_j_msg__0_1111121111[color=#11ec28]:
+   [ State_1111121111( ~lock9, h, i, j, msg, sk ) ]
+  --[ Pred_eq( h, hmac(sk, <j, msg>) ) ]->
+   [ State_11111211111( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqh_hmacsk_j_msg__1_1111121111[color=#11ec28]:
+   [ State_1111121111( ~lock9, h, i, j, msg, sk ) ]
+  --[ Pred_not_eq( h, hmac(sk, <j, msg>) ) ]->
+   [ State_11111211112( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_Receivedsk_msg_j_11111211111[color=#11ec28]:
+   [ State_11111211111( ~lock9, h, i, j, msg, sk ) ]
+  --[ Event( ), Received( sk, msg, j ) ]->
+   [ State_111112111111( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_cellB_i__one__111112111111[color=#11ec28]:
+   [ State_111112111111( ~lock9, h, i, j, msg, sk ) ]
+  --[ Insert( 'cellB', ('one'+i) ) ]->
+   [ State_1111121111111( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_cellB__1111121111111[color=#11ec28]:
+   [ State_1111121111111( ~lock9, h, i, j, msg, sk ) ]
+  --[ Unlock( $9, ~lock9, 'cellB' ), Unlock_9( $9, ~lock9, 'cellB' ) ]->
+   [ State_11111211111111( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111211111111[color=#11ec28]:
+   [ State_11111211111111( ~lock9, h, i, j, msg, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_cellB__11111211112[color=#11ec28]:
+   [ State_11111211112( ~lock9, h, i, j, msg, sk ) ]
+  --[ Unlock( $9, ~lock9, 'cellB' ), Unlock_9( $9, ~lock9, 'cellB' ) ]->
+   [ State_111112111121( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111112111121[color=#11ec28]:
+   [ State_111112111121( ~lock9, h, i, j, msg, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_cellB__1111121112[color=#11ec28]:
+   [ State_1111121112( ~lock9, h, i, j, msg, sk ) ]
+  --[ Unlock( $9, ~lock9, 'cellB' ), Unlock_9( $9, ~lock9, 'cellB' ) ]->
+   [ State_11111211121( ~lock9, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111211121[color=#11ec28]:
+   [ State_11111211121( ~lock9, h, i, j, msg, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111212[color=#11ec28]:
+   [ State_11111212( ~lock9, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_cellB__11112[color=#45d1e2]:
+   [ State_11112( sk ), Fr( ~lock8 ) ]
+  --[ Lock( $8, ~lock8, 'cellB' ), Lock_8( $8, ~lock8, 'cellB' ) ]->
+   [ State_111121( ~lock8, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_cellB_as_i_0_111121[color=#45d1e2]:
+   [ State_111121( ~lock8, sk ) ]
+  --[ IsIn( 'cellB', i ) ]->
+   [ State_1111211( ~lock8, i, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_cellB_as_i_1_111121[color=#45d1e2]:
+   [ State_111121( ~lock8, sk ) ]
+  --[ IsNotSet( 'cellB' ) ]->
+   [ State_1111212( ~lock8, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_msg_1111211[color=#45d1e2]:
+   [ State_1111211( ~lock8, i, sk ), Fr( msg ) ]
+  -->
+   [ State_11112111( ~lock8, i, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_Sentsk_msg_i__one__11112111[color=#45d1e2]:
+   [ State_11112111( ~lock8, i, msg, sk ) ]
+  --[ Event( ), Sent( sk, msg, ('one'+i) ) ]->
+   [ State_111121111( ~lock8, i, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_msg_SIGN_i__one__hmacsk_i__one__msg___111121111[color=#45d1e2]:
+   [ State_111121111( ~lock8, i, msg, sk ) ]
+  -->
+   [
+   State_1111211111( ~lock8, i, msg, sk ),
+   Out( <msg, 'SIGN', ('one'+i), hmac(sk, <('one'+i), msg>)> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_cellB_i__one__1111211111[color=#45d1e2]:
+   [ State_1111211111( ~lock8, i, msg, sk ) ]
+  --[ Insert( 'cellB', ('one'+i) ) ]->
+   [ State_11112111111( ~lock8, i, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_cellB__11112111111[color=#45d1e2]:
+   [ State_11112111111( ~lock8, i, msg, sk ) ]
+  --[ Unlock( $8, ~lock8, 'cellB' ), Unlock_8( $8, ~lock8, 'cellB' ) ]->
+   [ State_111121111111( ~lock8, i, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111121111111[color=#45d1e2]:
+   [ State_111121111111( ~lock8, i, msg, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111212[color=#45d1e2]:
+   [ State_1111212( ~lock8, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+restriction set_in:
+  "∀ x y #t3.
+    (IsIn( x, y ) @ #t3) ⇒
+    (∃ #t2.
+      (((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ∧
+       (∀ #t1. (Delete( x ) @ #t1) ⇒ ((#t1 < #t2) ∨ (#t3 < #t1)))) ∧
+      (∀ #t1 yp.
+        (Insert( x, yp ) @ #t1) ⇒ (((#t1 < #t2) ∨ (#t1 = #t2)) ∨ (#t3 < #t1))))"
+
+restriction set_notin:
+  "∀ x #t3.
+    (IsNotSet( x ) @ #t3) ⇒
+    ((∀ #t1 y. (Insert( x, y ) @ #t1) ⇒ (#t3 < #t1)) ∨
+     (∃ #t1.
+       ((Delete( x ) @ #t1) ∧ (#t1 < #t3)) ∧
+       (∀ #t2 y. ((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ⇒ (#t2 < #t1))))"
+
+restriction predicate_eq:
+  "∀ #i a b. (Pred_eq( a, b ) @ #i) ⇒ (a = b)"
+  // safety formula
+
+restriction predicate_not_eq:
+  "∀ #i a b. (Pred_not_eq( a, b ) @ #i) ⇒ (¬(a = b))"
+  // safety formula
+
+restriction single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+restriction locking_9:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_9( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_9( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+restriction locking_8:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_8( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_8( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+lemma Received_only_if_Sent:
+  all-traces
+  "∀ sk msg i #u.
+    (Received( sk, msg, i ) @ #u) ⇒
+    (∃ #v. (#v < #u) ∧ (Sent( sk, msg, i ) @ #v))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ sk msg i #u.
+  (Received( sk, msg, i ) @ #u)
+ ∧
+  ∀ #v. (Sent( sk, msg, i ) @ #v) ⇒ ¬(#v < #u)"
+*/
+by sorry
+
+lemma wellformed_Received:
+  all-traces
+  "∀ sk msg1 i1 msg2 i2 #u #v.
+    ((Received( sk, msg1, i1 ) @ #u) ∧ (Received( sk, msg2, i2 ) @ #v)) ⇒
+    (((msg1 = msg2) ∧ (i1 = i2)) ∨ ((¬(msg1 = msg2)) ∧ (¬(i1 = i2))))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ sk msg1 i1 msg2 i2 #u #v.
+  (Received( sk, msg1, i1 ) @ #u) ∧ (Received( sk, msg2, i2 ) @ #v)
+ ∧
+  (((¬(msg1 = msg2)) ∨ (¬(i1 = i2)))) ∧ (((msg1 = msg2) ∨ (i1 = i2)))"
+*/
+by sorry
+
+/*
+WARNING: the following wellformedness checks failed!
+
+unbound:
+  rule `lookup_cellA_as_i_0_11111111' has unbound variables: 
+    i
+  
+  rule `lookup_cellA_as_i_0_11111121' has unbound variables: 
+    i
+  
+  rule `lookup_cellB_as_i_0_1111121' has unbound variables: 
+    i
+  
+  rule `lookup_cellB_as_i_0_111121' has unbound variables: 
+    i
+
+Restriction actions:
+  restriction `set_in' references action 
+    (ProtoFact Linear "Delete" 1,1,Linear)
+  but no rule has such an action.
+  
+  restriction `set_notin' references action 
+    (ProtoFact Linear "Delete" 1,1,Linear)
+  but no rule has such an action.
+*/
+
+end

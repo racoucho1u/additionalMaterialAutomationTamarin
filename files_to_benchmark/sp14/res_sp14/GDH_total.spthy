@@ -1,0 +1,18 @@
+maude tool: 'maude'
+ checking version: 2.7.1. OK.
+ checking installation: OK.
+
+==============================================================================
+summary of summaries:
+
+analyzed: GDH.spthy
+
+  output:          ./res_sp14/GDHrecap.spthy
+  processing time: 0.037235927s
+  
+  WARNING: 1 wellformedness check failed!
+           The analysis results might be wrong!
+
+==============================================================================
+0.07user 0.06system 0:00.11elapsed 122%CPU (0avgtext+0avgdata 32536maxresident)k
+24inputs+32outputs (3major+8720minor)pagefaults 0swaps

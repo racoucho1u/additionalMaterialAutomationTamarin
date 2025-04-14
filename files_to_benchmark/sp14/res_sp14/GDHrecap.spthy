@@ -1,0 +1,324 @@
+theory GDH begin
+
+// Function signature and definition of the equational theory E
+
+builtins: diffie-hellman, multiset
+functions: fst/1[destructor], pair/2, snd/1[destructor], te/1, te_inv/1
+equations:
+    fst(<x.1, x.2>) = x.1,
+    snd(<x.1, x.2>) = x.2,
+    te_inv(te(x)) = x
+
+
+
+
+
+
+
+
+
+restriction Unique:
+  "∀ x #i #j. ((Uniq( x ) @ #i) ∧ (Uniq( x ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+restriction Less1:
+  "¬(∃ x #i. Less( x, x ) @ #i)"
+  // safety formula
+
+restriction Less2:
+  "¬(∃ x y #i. Less( (x+y), x ) @ #i)"
+  // safety formula
+
+restriction InEq:
+  "¬(∃ x #i. InEq( x, x ) @ #i)"
+  // safety formula
+
+rule (modulo E) AuthOut:
+   [ !AO( A, x ) ] --> [ Out( x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) CreateGroup:
+   [ In( <'CreateGroup', $gid, k> ) ]
+  --[ Uniq( <'CreateGroup', $gid> ), InEq( k, '1' ) ]->
+   [ !Group( $gid, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) StartParticipant:
+   [ In( <'StartParticipant', $gid, i, $A> ), !Group( $gid, k ), Fr( ~esk )
+   ]
+  --[
+  Uniq( <$gid, i> ), Uniq( <$gid, $A> ), Less( i, ('1'+k) ),
+  Esk( $gid, i, ~esk )
+  ]->
+   [ !Pstate( $gid, i, $A, ~esk ), !Pmap( $gid, i, $A ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) SendFirst:
+   [ In( <'SendFirst', $gid> ), !Pstate( $gid, '1', $A, ~esk ) ]
+  --[ Uniq( <'SendFirst', $gid> ), AExp( one ), AExp( ~esk ) ]->
+   [
+   !AO( $A, <$gid, ('1'+'1'), 'KeyFor', '1', 'g'> ),
+   !AO( $A, <$gid, ('1'+'1'), 'RoundKey', 'g'^~esk> ),
+   WaitAccept( $gid, '1', $A, ~esk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) RecvOthers:
+   [
+   In( <'RecvOthers', $gid, i, j> ), !Pstate( $gid, i, $A, ~esk ),
+   !Pmap( $gid, l, $B ), !AO( $B, <$gid, i, 'KeyFor', j, 'g'^y> )
+   ]
+  --[
+  Uniq( <'RecvOthers', $gid, i, j> ), Exp( $gid, i, y ),
+  ExpKeyFor( $gid, i, j, y ), Eq( ('1'+l), i ), AExp( (~esk*y) ), AExp( y )
+  ]->
+   [ !AO( $A, <$gid, ('1'+i), 'KeyFor', j, 'g'^y^~esk> ) ]
+
+  // loop breaker: [3]
+  /*
+  rule (modulo AC) RecvOthers:
+     [
+     In( <'RecvOthers', $gid, i, j> ), !Pstate( $gid, i, $A, ~esk ),
+     !Pmap( $gid, l, $B ), !AO( $B, <$gid, i, 'KeyFor', j, z> )
+     ]
+    --[
+    Uniq( <'RecvOthers', $gid, i, j> ), Exp( $gid, i, y ),
+    ExpKeyFor( $gid, i, j, y ), Eq( ('1'+l), i ), AExp( (~esk*y) ), AExp( y )
+    ]->
+     [ !AO( $A, <$gid, ('1'+i), 'KeyFor', j, z.1> ) ]
+    variants (modulo AC)
+    1. ~esk  = ~esk.15
+       y     = inv(~esk.15)
+       z     = 'g'^inv(~esk.15)
+       z.1   = 'g'
+    
+    2. ~esk  = ~esk.15
+       y     = one
+       z     = 'g'
+       z.1   = 'g'^~esk.15
+    
+    3. ~esk  = ~esk.19
+       y     = y.23
+       z     = 'g'^y.23
+       z.1   = 'g'^(~esk.19*y.23)
+    
+    4. ~esk  = ~esk.39
+       y     = inv((~esk.39*x.73))
+       z     = 'g'^inv((~esk.39*x.73))
+       z.1   = 'g'^inv(x.73)
+    
+    5. ~esk  = ~esk.39
+       y     = (x.73*inv(~esk.39))
+       z     = 'g'^(x.73*inv(~esk.39))
+       z.1   = 'g'^x.73
+    
+    6. ~esk  = ~esk.40
+       y     = (x.74*inv((~esk.40*x.75)))
+       z     = 'g'^(x.74*inv((~esk.40*x.75)))
+       z.1   = 'g'^(x.74*inv(x.75))
+    // loop breaker: [3]
+  */
+
+rule (modulo E) RecvRoundkey:
+   [
+   In( <'RecvRoundkey', $gid, i> ), !Pstate( $gid, i, $A, ~esk ),
+   !Pmap( $gid, l, $B ), !Group( $gid, k ),
+   !AO( $B, <$gid, i, 'RoundKey', 'g'^y> )
+   ]
+  --[
+  Uniq( <'RecvRoundkey', $gid, i> ), InEq( i, k ), Eq( ('1'+l), i ),
+  Exp( $gid, i, y ), ExpRoundKey( $gid, i, y ), AExp( y ), AExp( (~esk*y) )
+  ]->
+   [
+   !AO( $A, <$gid, ('1'+i), 'KeyFor', i, 'g'^y> ),
+   !AO( $A, <$gid, ('1'+i), 'RoundKey', 'g'^y^~esk> ),
+   WaitAccept( $gid, i, $A, ~esk )
+   ]
+
+  // loop breaker: [4]
+  /*
+  rule (modulo AC) RecvRoundkey:
+     [
+     In( <'RecvRoundkey', $gid, i> ), !Pstate( $gid, i, $A, ~esk ),
+     !Pmap( $gid, l, $B ), !Group( $gid, k ),
+     !AO( $B, <$gid, i, 'RoundKey', z> )
+     ]
+    --[
+    Uniq( <'RecvRoundkey', $gid, i> ), InEq( i, k ), Eq( ('1'+l), i ),
+    Exp( $gid, i, y ), ExpRoundKey( $gid, i, y ), AExp( y ), AExp( (~esk*y) )
+    ]->
+     [
+     !AO( $A, <$gid, ('1'+i), 'KeyFor', i, z> ),
+     !AO( $A, <$gid, ('1'+i), 'RoundKey', z.1> ),
+     WaitAccept( $gid, i, $A, ~esk )
+     ]
+    variants (modulo AC)
+    1. ~esk  = ~esk.16
+       y     = inv(~esk.16)
+       z     = 'g'^inv(~esk.16)
+       z.1   = 'g'
+    
+    2. ~esk  = ~esk.16
+       y     = one
+       z     = 'g'
+       z.1   = 'g'^~esk.16
+    
+    3. ~esk  = ~esk.20
+       y     = y.24
+       z     = 'g'^y.24
+       z.1   = 'g'^(~esk.20*y.24)
+    
+    4. ~esk  = ~esk.53
+       y     = inv((~esk.53*x.101))
+       z     = 'g'^inv((~esk.53*x.101))
+       z.1   = 'g'^inv(x.101)
+    
+    5. ~esk  = ~esk.53
+       y     = (x.101*inv(~esk.53))
+       z     = 'g'^(x.101*inv(~esk.53))
+       z.1   = 'g'^x.101
+    
+    6. ~esk  = ~esk.54
+       y     = (x.102*inv((~esk.54*x.103)))
+       z     = 'g'^(x.102*inv((~esk.54*x.103)))
+       z.1   = 'g'^(x.102*inv(x.103))
+    // loop breaker: [4]
+  */
+
+rule (modulo E) RecvRoundkeyLast:
+   [
+   In( <'RecvRoundkeyLast', $gid> ), !Pstate( $gid, k, $A, ~esk ),
+   !Pmap( $gid, l, $B ), !Group( $gid, k ),
+   !AO( $B, <$gid, k, 'RoundKey', 'g'^y> )
+   ]
+  --[
+  Uniq( <'RecvRoundkeyLast', $gid> ), Exp( $gid, k, y ), Eq( ('1'+l), k ),
+  AcceptLast( $gid, $A, k, 'g'^y^~esk ), ExpRoundKey( $gid, k, y ),
+  AExp( y )
+  ]->
+   [ ]
+
+  /*
+  rule (modulo AC) RecvRoundkeyLast:
+     [
+     In( <'RecvRoundkeyLast', $gid> ), !Pstate( $gid, k, $A, ~esk ),
+     !Pmap( $gid, l, $B ), !Group( $gid, k ),
+     !AO( $B, <$gid, k, 'RoundKey', z> )
+     ]
+    --[
+    Uniq( <'RecvRoundkeyLast', $gid> ), Exp( $gid, k, y ), Eq( ('1'+l), k ),
+    AcceptLast( $gid, $A, k, z.1 ), ExpRoundKey( $gid, k, y ), AExp( y )
+    ]->
+     [ ]
+    variants (modulo AC)
+    1. ~esk  = ~esk.14
+       y     = inv(~esk.14)
+       z     = 'g'^inv(~esk.14)
+       z.1   = 'g'
+    
+    2. ~esk  = ~esk.14
+       y     = one
+       z     = 'g'
+       z.1   = 'g'^~esk.14
+    
+    3. ~esk  = ~esk.17
+       y     = y.20
+       z     = 'g'^y.20
+       z.1   = 'g'^(~esk.17*y.20)
+    
+    4. ~esk  = ~esk.35
+       y     = inv((~esk.35*x.65))
+       z     = 'g'^inv((~esk.35*x.65))
+       z.1   = 'g'^inv(x.65)
+    
+    5. ~esk  = ~esk.35
+       y     = (x.65*inv(~esk.35))
+       z     = 'g'^(x.65*inv(~esk.35))
+       z.1   = 'g'^x.65
+    
+    6. ~esk  = ~esk.36
+       y     = (x.66*inv((~esk.36*x.67)))
+       z     = 'g'^(x.66*inv((~esk.36*x.67)))
+       z.1   = 'g'^(x.66*inv(x.67))
+  */
+
+rule (modulo E) Accept:
+   [
+   In( <'Accept', $gid, i> ), WaitAccept( $gid, i, $A, ~esk ),
+   !Group( $gid, k ), !Pmap( $gid, k, $B ),
+   !AO( $B, <$gid, ('1'+k), 'KeyFor', i, 'g'^y> )
+   ]
+  --[
+  Accept( $gid, $A, i, 'g'^y^~esk ), Uniq( <'Accept', $gid, i> ),
+  Exp( $gid, ('1'+k), y ), AExp( y )
+  ]->
+   [ ]
+
+  /*
+  rule (modulo AC) Accept:
+     [
+     In( <'Accept', $gid, i> ), WaitAccept( $gid, i, $A, ~esk ),
+     !Group( $gid, k ), !Pmap( $gid, k, $B ),
+     !AO( $B, <$gid, ('1'+k), 'KeyFor', i, z> )
+     ]
+    --[
+    Accept( $gid, $A, i, z.1 ), Uniq( <'Accept', $gid, i> ),
+    Exp( $gid, ('1'+k), y ), AExp( y )
+    ]->
+     [ ]
+    variants (modulo AC)
+    1. ~esk  = ~esk.14
+       y     = inv(~esk.14)
+       z     = 'g'^inv(~esk.14)
+       z.1   = 'g'
+    
+    2. ~esk  = ~esk.14
+       y     = one
+       z     = 'g'
+       z.1   = 'g'^~esk.14
+    
+    3. ~esk  = ~esk.17
+       y     = y.20
+       z     = 'g'^y.20
+       z.1   = 'g'^(~esk.17*y.20)
+    
+    4. ~esk  = ~esk.35
+       y     = inv((~esk.35*x.65))
+       z     = 'g'^inv((~esk.35*x.65))
+       z.1   = 'g'^inv(x.65)
+    
+    5. ~esk  = ~esk.35
+       y     = (x.65*inv(~esk.35))
+       z     = 'g'^(x.65*inv(~esk.35))
+       z.1   = 'g'^x.65
+    
+    6. ~esk  = ~esk.36
+       y     = (x.66*inv((~esk.36*x.67)))
+       z     = 'g'^(x.66*inv((~esk.36*x.67)))
+       z.1   = 'g'^(x.66*inv(x.67))
+  */
+
+
+
+
+
+/*
+WARNING: the following wellformedness checks failed!
+
+Check presence of the --prove/--lemma arguments in theory:
+  --> '' from arguments do(es) not correspond to a specified lemma in the theory 
+*/
+
+/*
+Generated from:
+Tamarin version 1.7.1
+Maude version 2.7.1
+Git revision: b031a521f74357ad6423bd3e7c249120d4fc9cd0 (with uncommited changes), branch: reinforcementLearning
+Compiled at: 2022-12-15 14:16:26.452035963 UTC
+*/
+
+end

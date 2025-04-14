@@ -1,0 +1,181 @@
+theory ToyPrivateChannel begin
+
+// Function signature and definition of the equational theory E
+
+functions: check_rep/2, fst/1, get_rep/1, pair/2, rep/2 [private],
+           sdec/2, senc/2, snd/1
+equations:
+    check_rep(rep(m, loc), loc) = m,
+    fst(<x.1, x.2>) = x.1,
+    get_rep(rep(m, loc)) = m,
+    sdec(senc(x.1, x.2), x.2) = x.1,
+    snd(<x.1, x.2>) = x.2
+
+rule (modulo E) Init_:
+   [ ] --[ Init( ) ]-> [ State_( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_s_:
+   [ State_( ), Fr( s ) ] --> [ State_1( s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_Secrets_1:
+   [ State_1( s ) ] --[ Event( ), Secret( s ) ]-> [ State_11( s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_11:
+   [ State_11( s ) ] --> [ !Semistate_111( s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_11:
+   [ !Semistate_111( s ) ] --> [ State_111( s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_d_111[color=#569dc0]:
+   [ State_111( s ), Fr( d ) ] --> [ State_1111( d, s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_k1_1111[color=#569dc0]:
+   [ State_1111( d, s ), Fr( k1 ) ] --> [ State_11111( d, k1, s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_k2_11111[color=#569dc0]:
+   [ State_11111( d, k1, s ), Fr( k2 ) ]
+  -->
+   [ State_111111( d, k1, k2, s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_111111[color=#569dc0]:
+   [ State_111111( d, k1, k2, s ) ]
+  -->
+   [ State_1111111( d, k1, k2, s ), State_1111112( d, k1, k2, s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_1111111[color=#569dc0]:
+   [ State_1111111( d, k1, k2, s ) ]
+  -->
+   [ State_11111111( d, k1, k2, s ), State_11111112( d, k1, k2, s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_11111111[color=#569dc0]:
+   [ State_11111111( d, k1, k2, s ) ]
+  -->
+   [ State_111111111( d, k1, k2, s ), State_111111112( d, k1, k2, s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_d_s_0_111111111[color=#569dc0]:
+   [ State_111111111( d, k1, k2, s ), In( d ) ]
+  --[ ChannelInEvent( d ) ]->
+   [ Out( s ), State_1111111111( d, k1, k2, s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_d_s_1_111111111[color=#569dc0]:
+   [ State_111111111( d, k1, k2, s ) ]
+  -->
+   [ Semistate_111111111( d, k1, k2, s ), Message( d, s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_d_s_2_111111111[color=#569dc0]:
+   [ Semistate_111111111( d, k1, k2, s ), Ack( d, s ) ]
+  -->
+   [ State_1111111111( d, k1, k2, s ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111111111[color=#569dc0]:
+   [ State_1111111111( d, k1, k2, s ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_d_x_0_111111112[color=#569dc0]:
+   [ State_111111112( d, k1, k2, s ), In( <d, x> ) ]
+  --[ ChannelInEvent( <d, x> ) ]->
+   [ State_1111111121( d, k1, k2, s, x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_d_x_1_111111112[color=#569dc0]:
+   [ State_111111112( d, k1, k2, s ), Message( d, x ) ]
+  -->
+   [ Ack( d, x ), State_1111111121( d, k1, k2, s, x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_k1_1111111121[color=#569dc0]:
+   [ State_1111111121( d, k1, k2, s, x ) ]
+  -->
+   [ State_11111111211( d, k1, k2, s, x ), Out( k1 ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111111211[color=#569dc0]:
+   [ State_11111111211( d, k1, k2, s, x ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_d_x_0_11111112[color=#569dc0]:
+   [ State_11111112( d, k1, k2, s ), In( <d, x> ) ]
+  --[ ChannelInEvent( <d, x> ) ]->
+   [ State_111111121( d, k1, k2, s, x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_d_x_1_11111112[color=#569dc0]:
+   [ State_11111112( d, k1, k2, s ), Message( d, x ) ]
+  -->
+   [ Ack( d, x ), State_111111121( d, k1, k2, s, x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_k2_111111121[color=#569dc0]:
+   [ State_111111121( d, k1, k2, s, x ) ]
+  -->
+   [ State_1111111211( d, k1, k2, s, x ), Out( k2 ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111111211[color=#569dc0]:
+   [ State_1111111211( d, k1, k2, s, x ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_sencs_k1_k2__1111112[color=#569dc0]:
+   [ State_1111112( d, k1, k2, s ) ]
+  -->
+   [ State_11111121( d, k1, k2, s ), Out( senc(s, <k1, k2>) ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111121[color=#569dc0]:
+   [ State_11111121( d, k1, k2, s ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+restriction single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+lemma secret_of_s:
+  all-traces "∀ s #j. (Secret( s ) @ #j) ⇒ (¬(∃ #i. !KU( s ) @ #i))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ s #j. (Secret( s ) @ #j) ∧ ∃ #i. (!KU( s ) @ #i)"
+*/
+by sorry
+
+/* All well-formedness checks were successful. */
+
+end

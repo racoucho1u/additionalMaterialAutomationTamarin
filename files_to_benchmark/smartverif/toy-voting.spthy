@@ -1,0 +1,179 @@
+theory ToyLockTable begin
+
+// Function signature and definition of the equational theory E
+
+functions: check_rep/2, fst/1, get_rep/1, pair/2, rep/2 [private],
+           sdec/2, senc/2, snd/1
+equations:
+    check_rep(rep(m, loc), loc) = m,
+    fst(<x.1, x.2>) = x.1,
+    get_rep(rep(m, loc)) = m,
+    sdec(senc(x.1, x.2), x.2) = x.1,
+    snd(<x.1, x.2>) = x.2
+
+
+rule (modulo E) Init_:
+   [ ] --[ Init( ) ]-> [ State_( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_:
+   [ State_( ) ] --> [ !Semistate_1( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_:
+   [ !Semistate_1( ) ] --> [ State_1( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_VotingList_1:
+   [ State_1( ), Fr( VotingList ) ] --> [ State_11( VotingList ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_11:
+   [ State_11( VotingList ) ] --> [ !Semistate_111( VotingList ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_11:
+   [ !Semistate_111( VotingList ) ] --> [ State_111( VotingList ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_x_a_x_v__111[color=#569dc0]:
+   [ State_111( VotingList ), In( <x_a, x_v> ) ]
+  -->
+   [ State_1111( VotingList, x_a, x_v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_VotingList_1111[color=#569dc0]:
+   [ State_1111( VotingList, x_a, x_v ), Fr( ~lock6 ) ]
+  --[ Lock( $6, ~lock6, VotingList ), Lock_6( $6, ~lock6, VotingList ) ]->
+   [ State_11111( ~lock6, VotingList, x_a, x_v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_VotingList_x_a_as_i_0_11111[color=#569dc0]:
+   [ State_11111( ~lock6, VotingList, x_a, x_v ) ]
+  --[ IsIn( <VotingList, x_a>, i ) ]->
+   [ State_111111( ~lock6, VotingList, i, x_a, x_v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_VotingList_x_a_as_i_1_11111[color=#569dc0]:
+   [ State_11111( ~lock6, VotingList, x_a, x_v ) ]
+  --[ IsNotSet( <VotingList, x_a> ) ]->
+   [ State_111112( ~lock6, VotingList, x_a, x_v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_VotingList_111111[color=#569dc0]:
+   [ State_111111( ~lock6, VotingList, i, x_a, x_v ) ]
+  --[ Unlock( $6, ~lock6, VotingList ), Unlock_6( $6, ~lock6, VotingList )
+  ]->
+   [ State_1111111( ~lock6, VotingList, i, x_a, x_v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111111[color=#569dc0]:
+   [ State_1111111( ~lock6, VotingList, i, x_a, x_v ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_VotingList_x_a_x_v_111112[color=#569dc0]:
+   [ State_111112( ~lock6, VotingList, x_a, x_v ) ]
+  --[ Insert( <VotingList, x_a>, x_v ) ]->
+   [ State_1111121( ~lock6, VotingList, x_a, x_v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_HasVotedVotingList_x_a_x_v_1111121[color=#569dc0]:
+   [ State_1111121( ~lock6, VotingList, x_a, x_v ) ]
+  --[ Event( ), HasVoted( VotingList, x_a, x_v ) ]->
+   [ State_11111211( ~lock6, VotingList, x_a, x_v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_VotingList_11111211[color=#569dc0]:
+   [ State_11111211( ~lock6, VotingList, x_a, x_v ) ]
+  --[ Unlock( $6, ~lock6, VotingList ), Unlock_6( $6, ~lock6, VotingList )
+  ]->
+   [ State_111112111( ~lock6, VotingList, x_a, x_v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111112111[color=#569dc0]:
+   [ State_111112111( ~lock6, VotingList, x_a, x_v ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+restriction set_in:
+  "∀ x y #t3.
+    (IsIn( x, y ) @ #t3) ⇒
+    (∃ #t2.
+      (((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ∧
+       (∀ #t1. (Delete( x ) @ #t1) ⇒ ((#t1 < #t2) ∨ (#t3 < #t1)))) ∧
+      (∀ #t1 yp.
+        (Insert( x, yp ) @ #t1) ⇒ (((#t1 < #t2) ∨ (#t1 = #t2)) ∨ (#t3 < #t1))))"
+
+restriction set_notin:
+  "∀ x #t3.
+    (IsNotSet( x ) @ #t3) ⇒
+    ((∀ #t1 y. (Insert( x, y ) @ #t1) ⇒ (#t3 < #t1)) ∨
+     (∃ #t1.
+       ((Delete( x ) @ #t1) ∧ (#t1 < #t3)) ∧
+       (∀ #t2 y. ((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ⇒ (#t2 < #t1))))"
+
+restriction single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+restriction locking_6:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_6( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_6( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+lemma unique_voter:
+  all-traces
+  "∀ vl a v1 v2 #i #j.
+    ((HasVoted( vl, a, v2 ) @ #i) ∧ (HasVoted( vl, a, v1 ) @ #j)) ⇒
+    (v1 = v2)"
+/*
+guarded formula characterizing all counter-examples:
+"∃ vl a v1 v2 #i #j.
+  (HasVoted( vl, a, v2 ) @ #i) ∧ (HasVoted( vl, a, v1 ) @ #j) ∧ ¬(v1 = v2)"
+*/
+by sorry
+
+/*
+WARNING: the following wellformedness checks failed!
+
+unbound:
+  rule `lookup_VotingList_x_a_as_i_0_11111' has unbound variables: 
+    i
+
+Restriction actions:
+  restriction `set_in' references action 
+    (ProtoFact Linear "Delete" 1,1,Linear)
+  but no rule has such an action.
+  
+  restriction `set_notin' references action 
+    (ProtoFact Linear "Delete" 1,1,Linear)
+  but no rule has such an action.
+*/
+
+end

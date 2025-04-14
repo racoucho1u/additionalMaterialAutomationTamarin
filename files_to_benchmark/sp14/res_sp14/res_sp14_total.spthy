@@ -1,0 +1,7 @@
+maude tool: 'maude'
+ checking version: 2.7.1. OK.
+ checking installation: OK.
+tamarin-prover: res_sp14: openFile: inappropriate type (is a directory)
+Command exited with non-zero status 1
+0.01user 0.00system 0:00.02elapsed 100%CPU (0avgtext+0avgdata 16348maxresident)k
+0inputs+8outputs (0major+5319minor)pagefaults 0swaps

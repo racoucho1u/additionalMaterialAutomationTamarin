@@ -1,0 +1,19 @@
+# GUTI_SRC
+# PDUorigin
+# PDUargsconstant
+# ValueOrigin
+# ValueReset
+# executability_hkd
+executability_hkd_vkd
+executability_hkd_hkd
+executability_hkd_hkd_hkd -Dexec_hkd_hkd_hkd
+executability_hkd_hkd_vkd -Dexec_hkd_hkd_vkd
+executability_hkd_vkd_hkd -Dexec_hkd_vkd_hkd
+executability_hkd_vkd_vkd -Dexec_hkd_vkd_vkd
+injectiveagreement_ue_tran_k_gnb
+injectiveagreement_tran_ue_k_gnb
+secret_supi
+secret_k_seaf
+secret_k_amf
+secret_k_gnb
+secret_k_gnb_star

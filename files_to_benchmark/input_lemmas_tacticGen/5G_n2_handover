@@ -1,0 +1,23 @@
+# GUTI_SRC
+# PDUorigin
+# PDUargsconstant
+# PDUidunique
+ValueOrigin
+# ValueReset
+executability_old_kamf_no_id_req
+executability_old_kamf_id_req
+executability_new_kamf_no_id_req
+executability_new_kamf_id_req
+executability_old_kamf_old_kamf_no_id_req
+executability_old_kamf_new_kamf_no_id_req
+executability_new_kamf_new_kamf_no_id_req
+executability_new_kamf_old_kamf_no_id_req
+injectiveagreement_ue_cn_k_amf
+injectiveagreement_cn_ue_k_amf
+injectiveagreement_ue_tran_k_gnb_star
+injectiveagreement_tran_ue_k_gnb_star
+secret_supi
+secret_k_seaf
+secret_k_amf
+secret_k_gnb
+secret_k_gnb_star

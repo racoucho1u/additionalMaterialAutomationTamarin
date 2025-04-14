@@ -1,0 +1,3209 @@
+theory PKCS11TemplatePolicy begin
+
+// Function signature and definition of the equational theory E
+
+functions: attdec/1, attenc/1, attextr/1, attsens/1, atttrus/1,
+           attunwrap/1, attut/1, attwrap/1, attwt/1, attwwt/1, check_rep/2, fst/1,
+           get_rep/1, key/1, pair/2, rep/2 [private], sdec/2, senc/2, snd/1, tem/1
+equations:
+    attdec(<wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, ut>) = dec,
+    attenc(<wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, ut>) = enc,
+    attextr(<wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, ut>) = extr,
+    attsens(<wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, ut>) = sens,
+    atttrus(<wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, ut>) = trus,
+    attunwrap(<wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, ut>)
+  = unwrap,
+    attut(<wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, ut>) = ut,
+    attwrap(<wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, ut>) = wrap,
+    attwt(<wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, ut>) = wt,
+    attwwt(<wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, ut>) = wwt,
+    check_rep(rep(m, loc), loc) = m,
+    fst(<x.1, x.2>) = x.1,
+    get_rep(rep(m, loc)) = m,
+    key(<k, templ>) = k,
+    sdec(senc(x.1, x.2), x.2) = x.1,
+    snd(<x.1, x.2>) = x.2,
+    tem(<k, templ>) = templ
+
+
+rule (modulo E) Init_:
+   [ ] --[ Init( ) ]-> [ State_( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_F_template_trusted_on_on_off_off_on_on_on_on_usage_usage__:
+   [ State_( ) ]
+  --[
+  Insert( <'F_template', 'trusted'>,
+          <'on', 'on', 'off', 'off', 'on', 'on', 'on', 'on', 'usage', 'usage'>
+  )
+  ]->
+   [ State_1( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_F_template_usage_off_off_on_on_on_on_off_on_undef_undef__1:
+   [ State_1( ) ]
+  --[
+  Insert( <'F_template', 'usage'>,
+          <'off', 'off', 'on', 'on', 'on', 'on', 'off', 'on', 'undef', 'undef'>
+  )
+  ]->
+   [ State_11( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_F_template_untrusted_off_off_on_on_off_on_off_off_undef_undef__11:
+   [ State_11( ) ]
+  --[
+  Insert( <'F_template', 'untrusted'>,
+          <'off', 'off', 'on', 'on', 'off', 'on', 'off', 'off', 'undef', 'undef'>
+  )
+  ]->
+   [ State_111( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_111:
+   [ State_111( ) ] --> [ !Semistate_1111( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_111:
+   [ !Semistate_1111( ) ] --> [ State_1111( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_1111:
+   [ State_1111( ) ] --> [ State_11111( ), State_11112( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_11111:
+   [ State_11111( ) ] --> [ State_111111( ), State_111112( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_111111:
+   [ State_111111( ) ] --> [ State_1111111( ), State_1111112( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_1111111:
+   [ State_1111111( ) ] --> [ State_11111111( ), State_11111112( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_11111111:
+   [ State_11111111( ) ] --> [ State_111111111( ), State_111111112( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_create_atts_ptr__111111111[color=#569dc0]:
+   [ State_111111111( ), In( <'create', atts, ptr> ) ]
+  -->
+   [ State_1111111111( atts, ptr ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_device__1111111111[color=#569dc0]:
+   [ State_1111111111( atts, ptr ), Fr( ~lock14 ) ]
+  --[ Lock( $14, ~lock14, 'device' ), Lock_14( $14, ~lock14, 'device' ) ]->
+   [ State_11111111111( ~lock14, atts, ptr ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_L_h_11111111111[color=#569dc0]:
+   [ State_11111111111( ~lock14, atts, ptr ), Fr( L_h ) ]
+  -->
+   [ State_111111111111( ~lock14, L_h, atts, ptr ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_k_111111111111[color=#569dc0]:
+   [ State_111111111111( ~lock14, L_h, atts, ptr ), Fr( k ) ]
+  -->
+   [ State_1111111111111( ~lock14, L_h, atts, k, ptr ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_F_template_ptr_as_templ_0_1111111111111[color=#569dc0]:
+   [ State_1111111111111( ~lock14, L_h, atts, k, ptr ) ]
+  --[ IsIn( <'F_template', ptr>, templ ) ]->
+   [ State_11111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_F_template_ptr_as_templ_1_1111111111111[color=#569dc0]:
+   [ State_1111111111111( ~lock14, L_h, atts, k, ptr ) ]
+  --[ IsNotSet( <'F_template', ptr> ) ]->
+   [ State_11111111111112( ~lock14, L_h, atts, k, ptr ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_permitsattwraptempl_attunwraptempl_attenctempl_attdectempl_attsenstempl_attextrtempl_atttrustempl_attwwttempl_attwttempl_attuttempl_attwrapatts_attunwrapatts_attencatts_attdecatts_attsensatts_attextratts_atttrusatts_attwwtatts_attwtatts_attutatts_0_11111111111111[color=#569dc0]:
+   [ State_11111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+  --[
+  Pred_permits( attwrap(templ), attunwrap(templ), attenc(templ),
+                attdec(templ), attsens(templ), attextr(templ), atttrus(templ),
+                attwwt(templ), attwt(templ), attut(templ), attwrap(atts),
+                attunwrap(atts), attenc(atts), attdec(atts), attsens(atts),
+                attextr(atts), atttrus(atts), attwwt(atts), attwt(atts), attut(atts)
+  )
+  ]->
+   [ State_111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+
+  /*
+  rule (modulo AC) if_permitsattwraptempl_attunwraptempl_attenctempl_attdectempl_attsenstempl_attextrtempl_atttrustempl_attwwttempl_attwttempl_attuttempl_attwrapatts_attunwrapatts_attencatts_attdecatts_attsensatts_attextratts_atttrusatts_attwwtatts_attwtatts_attutatts_0_11111111111111[color=#569dc0]:
+     [ State_11111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+    --[
+    Pred_permits( z, z.1, z.2, z.3, z.4, z.5, z.6, z.7, z.8, z.9, z.10, z.11,
+                  z.12, z.13, z.14, z.15, z.16, z.17, z.18, z.19
+    )
+    ]->
+     [ State_111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+    variants (modulo AC)
+    1. atts  = atts.27
+       templ = templ.27
+       z     = attwrap(templ.27)
+       z.1   = attunwrap(templ.27)
+       z.2   = attenc(templ.27)
+       z.3   = attdec(templ.27)
+       z.4   = attsens(templ.27)
+       z.5   = attextr(templ.27)
+       z.6   = atttrus(templ.27)
+       z.7   = attwwt(templ.27)
+       z.8   = attwt(templ.27)
+       z.9   = attut(templ.27)
+       z.10  = attwrap(atts.27)
+       z.11  = attunwrap(atts.27)
+       z.12  = attenc(atts.27)
+       z.13  = attdec(atts.27)
+       z.14  = attsens(atts.27)
+       z.15  = attextr(atts.27)
+       z.16  = atttrus(atts.27)
+       z.17  = attwwt(atts.27)
+       z.18  = attwt(atts.27)
+       z.19  = attut(atts.27)
+    
+    2. atts  = atts.37
+       templ = <x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36>
+       z     = x.27
+       z.1   = x.28
+       z.2   = x.29
+       z.3   = x.30
+       z.4   = x.31
+       z.5   = x.32
+       z.6   = x.33
+       z.7   = x.34
+       z.8   = x.35
+       z.9   = x.36
+       z.10  = attwrap(atts.37)
+       z.11  = attunwrap(atts.37)
+       z.12  = attenc(atts.37)
+       z.13  = attdec(atts.37)
+       z.14  = attsens(atts.37)
+       z.15  = attextr(atts.37)
+       z.16  = atttrus(atts.37)
+       z.17  = attwwt(atts.37)
+       z.18  = attwt(atts.37)
+       z.19  = attut(atts.37)
+    
+    3. atts  = <x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36>
+       templ = templ.37
+       z     = attwrap(templ.37)
+       z.1   = attunwrap(templ.37)
+       z.2   = attenc(templ.37)
+       z.3   = attdec(templ.37)
+       z.4   = attsens(templ.37)
+       z.5   = attextr(templ.37)
+       z.6   = atttrus(templ.37)
+       z.7   = attwwt(templ.37)
+       z.8   = attwt(templ.37)
+       z.9   = attut(templ.37)
+       z.10  = x.27
+       z.11  = x.28
+       z.12  = x.29
+       z.13  = x.30
+       z.14  = x.31
+       z.15  = x.32
+       z.16  = x.33
+       z.17  = x.34
+       z.18  = x.35
+       z.19  = x.36
+    
+    4. atts  = <x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36>
+       templ = <x.39, x.40, x.41, x.42, x.43, x.44, x.45, x.46, x.47, x.48>
+       z     = x.39
+       z.1   = x.40
+       z.2   = x.41
+       z.3   = x.42
+       z.4   = x.43
+       z.5   = x.44
+       z.6   = x.45
+       z.7   = x.46
+       z.8   = x.47
+       z.9   = x.48
+       z.10  = x.27
+       z.11  = x.28
+       z.12  = x.29
+       z.13  = x.30
+       z.14  = x.31
+       z.15  = x.32
+       z.16  = x.33
+       z.17  = x.34
+       z.18  = x.35
+       z.19  = x.36
+  */
+
+rule (modulo E) if_permitsattwraptempl_attunwraptempl_attenctempl_attdectempl_attsenstempl_attextrtempl_atttrustempl_attwwttempl_attwttempl_attuttempl_attwrapatts_attunwrapatts_attencatts_attdecatts_attsensatts_attextratts_atttrusatts_attwwtatts_attwtatts_attutatts_1_11111111111111[color=#569dc0]:
+   [ State_11111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+  --[
+  Pred_not_permits( attwrap(templ), attunwrap(templ), attenc(templ),
+                    attdec(templ), attsens(templ), attextr(templ), atttrus(templ),
+                    attwwt(templ), attwt(templ), attut(templ), attwrap(atts),
+                    attunwrap(atts), attenc(atts), attdec(atts), attsens(atts),
+                    attextr(atts), atttrus(atts), attwwt(atts), attwt(atts), attut(atts)
+  )
+  ]->
+   [ State_111111111111112( ~lock14, L_h, atts, k, ptr, templ ) ]
+
+  /*
+  rule (modulo AC) if_permitsattwraptempl_attunwraptempl_attenctempl_attdectempl_attsenstempl_attextrtempl_atttrustempl_attwwttempl_attwttempl_attuttempl_attwrapatts_attunwrapatts_attencatts_attdecatts_attsensatts_attextratts_atttrusatts_attwwtatts_attwtatts_attutatts_1_11111111111111[color=#569dc0]:
+     [ State_11111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+    --[
+    Pred_not_permits( z, z.1, z.2, z.3, z.4, z.5, z.6, z.7, z.8, z.9, z.10,
+                      z.11, z.12, z.13, z.14, z.15, z.16, z.17, z.18, z.19
+    )
+    ]->
+     [ State_111111111111112( ~lock14, L_h, atts, k, ptr, templ ) ]
+    variants (modulo AC)
+    1. atts  = atts.27
+       templ = templ.27
+       z     = attwrap(templ.27)
+       z.1   = attunwrap(templ.27)
+       z.2   = attenc(templ.27)
+       z.3   = attdec(templ.27)
+       z.4   = attsens(templ.27)
+       z.5   = attextr(templ.27)
+       z.6   = atttrus(templ.27)
+       z.7   = attwwt(templ.27)
+       z.8   = attwt(templ.27)
+       z.9   = attut(templ.27)
+       z.10  = attwrap(atts.27)
+       z.11  = attunwrap(atts.27)
+       z.12  = attenc(atts.27)
+       z.13  = attdec(atts.27)
+       z.14  = attsens(atts.27)
+       z.15  = attextr(atts.27)
+       z.16  = atttrus(atts.27)
+       z.17  = attwwt(atts.27)
+       z.18  = attwt(atts.27)
+       z.19  = attut(atts.27)
+    
+    2. atts  = atts.37
+       templ = <x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36>
+       z     = x.27
+       z.1   = x.28
+       z.2   = x.29
+       z.3   = x.30
+       z.4   = x.31
+       z.5   = x.32
+       z.6   = x.33
+       z.7   = x.34
+       z.8   = x.35
+       z.9   = x.36
+       z.10  = attwrap(atts.37)
+       z.11  = attunwrap(atts.37)
+       z.12  = attenc(atts.37)
+       z.13  = attdec(atts.37)
+       z.14  = attsens(atts.37)
+       z.15  = attextr(atts.37)
+       z.16  = atttrus(atts.37)
+       z.17  = attwwt(atts.37)
+       z.18  = attwt(atts.37)
+       z.19  = attut(atts.37)
+    
+    3. atts  = <x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36>
+       templ = templ.37
+       z     = attwrap(templ.37)
+       z.1   = attunwrap(templ.37)
+       z.2   = attenc(templ.37)
+       z.3   = attdec(templ.37)
+       z.4   = attsens(templ.37)
+       z.5   = attextr(templ.37)
+       z.6   = atttrus(templ.37)
+       z.7   = attwwt(templ.37)
+       z.8   = attwt(templ.37)
+       z.9   = attut(templ.37)
+       z.10  = x.27
+       z.11  = x.28
+       z.12  = x.29
+       z.13  = x.30
+       z.14  = x.31
+       z.15  = x.32
+       z.16  = x.33
+       z.17  = x.34
+       z.18  = x.35
+       z.19  = x.36
+    
+    4. atts  = <x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36>
+       templ = <x.39, x.40, x.41, x.42, x.43, x.44, x.45, x.46, x.47, x.48>
+       z     = x.39
+       z.1   = x.40
+       z.2   = x.41
+       z.3   = x.42
+       z.4   = x.43
+       z.5   = x.44
+       z.6   = x.45
+       z.7   = x.46
+       z.8   = x.47
+       z.9   = x.48
+       z.10  = x.27
+       z.11  = x.28
+       z.12  = x.29
+       z.13  = x.30
+       z.14  = x.31
+       z.15  = x.32
+       z.16  = x.33
+       z.17  = x.34
+       z.18  = x.35
+       z.19  = x.36
+  */
+
+rule (modulo E) event_NewKeyL_h_k_attsensatts_111111111111111[color=#569dc0]:
+   [ State_111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+  --[ Event( ), NewKey( L_h, k, attsens(atts) ) ]->
+   [ State_1111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+
+  /*
+  rule (modulo AC) event_NewKeyL_h_k_attsensatts_111111111111111[color=#569dc0]:
+     [ State_111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+    --[ Event( ), NewKey( L_h, k, z ) ]->
+     [ State_1111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+    variants (modulo AC)
+    1. atts  = atts.8
+       z     = attsens(atts.8)
+    
+    2. atts  = <x.8, x.9, x.10, x.11, x.12, x.13, x.14, x.15, x.16, x.17>
+       z     = x.12
+  */
+
+rule (modulo E) insert_obj_L_h_k_atts__1111111111111111[color=#569dc0]:
+   [ State_1111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+  --[ Insert( <'obj', L_h>, <k, atts> ) ]->
+   [ State_11111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_WrapKeyL_h_k_attwrapatts_11111111111111111[color=#569dc0]:
+   [ State_11111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+  --[ Event( ), WrapKey( L_h, k, attwrap(atts) ) ]->
+   [ State_111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+
+  /*
+  rule (modulo AC) event_WrapKeyL_h_k_attwrapatts_11111111111111111[color=#569dc0]:
+     [ State_11111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+    --[ Event( ), WrapKey( L_h, k, z ) ]->
+     [ State_111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+    variants (modulo AC)
+    1. atts  = atts.8
+       z     = attwrap(atts.8)
+    
+    2. atts  = <x.8, x.9, x.10, x.11, x.12, x.13, x.14, x.15, x.16, x.17>
+       z     = x.8
+  */
+
+rule (modulo E) event_DecKeyL_h_k_attdecatts_111111111111111111[color=#569dc0]:
+   [ State_111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+  --[ Event( ), DecKey( L_h, k, attdec(atts) ) ]->
+   [ State_1111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+
+  /*
+  rule (modulo AC) event_DecKeyL_h_k_attdecatts_111111111111111111[color=#569dc0]:
+     [ State_111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+    --[ Event( ), DecKey( L_h, k, z ) ]->
+     [ State_1111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+    variants (modulo AC)
+    1. atts  = atts.8
+       z     = attdec(atts.8)
+    
+    2. atts  = <x.8, x.9, x.10, x.11, x.12, x.13, x.14, x.15, x.16, x.17>
+       z     = x.11
+  */
+
+rule (modulo E) event_EncKeyL_h_k_attencatts_1111111111111111111[color=#569dc0]:
+   [ State_1111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+  --[ Event( ), EncKey( L_h, k, attenc(atts) ) ]->
+   [ State_11111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+
+  /*
+  rule (modulo AC) event_EncKeyL_h_k_attencatts_1111111111111111111[color=#569dc0]:
+     [ State_1111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+    --[ Event( ), EncKey( L_h, k, z ) ]->
+     [ State_11111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+    variants (modulo AC)
+    1. atts  = atts.8
+       z     = attenc(atts.8)
+    
+    2. atts  = <x.8, x.9, x.10, x.11, x.12, x.13, x.14, x.15, x.16, x.17>
+       z     = x.10
+  */
+
+rule (modulo E) event_UnwrapKeyL_h_k_attunwrapatts_11111111111111111111[color=#569dc0]:
+   [ State_11111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+  --[ Event( ), UnwrapKey( L_h, k, attunwrap(atts) ) ]->
+   [ State_111111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+
+  /*
+  rule (modulo AC) event_UnwrapKeyL_h_k_attunwrapatts_11111111111111111111[color=#569dc0]:
+     [ State_11111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+    --[ Event( ), UnwrapKey( L_h, k, z ) ]->
+     [ State_111111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+    variants (modulo AC)
+    1. atts  = atts.8
+       z     = attunwrap(atts.8)
+    
+    2. atts  = <x.8, x.9, x.10, x.11, x.12, x.13, x.14, x.15, x.16, x.17>
+       z     = x.9
+  */
+
+rule (modulo E) out_L_h_111111111111111111111[color=#569dc0]:
+   [ State_111111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+  -->
+   [
+   State_1111111111111111111111( ~lock14, L_h, atts, k, ptr, templ ),
+   Out( L_h )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_device__1111111111111111111111[color=#569dc0]:
+   [ State_1111111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+  --[ Unlock( $14, ~lock14, 'device' ), Unlock_14( $14, ~lock14, 'device' )
+  ]->
+   [ State_11111111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111111111111111111111[color=#569dc0]:
+   [ State_11111111111111111111111( ~lock14, L_h, atts, k, ptr, templ ) ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111111111112[color=#569dc0]:
+   [ State_111111111111112( ~lock14, L_h, atts, k, ptr, templ ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111111111112[color=#569dc0]:
+   [ State_11111111111112( ~lock14, L_h, atts, k, ptr ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_L_h_sencm_k__111111112[color=#2cd719]:
+   [ State_111111112( ), In( <L_h, senc(m, k)> ) ]
+  -->
+   [ State_1111111121( L_h, k, m ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_device__1111111121[color=#2cd719]:
+   [ State_1111111121( L_h, k, m ), Fr( ~lock8 ) ]
+  --[ Lock( $8, ~lock8, 'device' ), Lock_8( $8, ~lock8, 'device' ) ]->
+   [ State_11111111211( ~lock8, L_h, k, m ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_obj_L_h_as_v_0_11111111211[color=#2cd719]:
+   [ State_11111111211( ~lock8, L_h, k, m ) ]
+  --[ IsIn( <'obj', L_h>, v ) ]->
+   [ State_111111112111( ~lock8, L_h, k, m, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_obj_L_h_as_v_1_11111111211[color=#2cd719]:
+   [ State_11111111211( ~lock8, L_h, k, m ) ]
+  --[ IsNotSet( <'obj', L_h> ) ]->
+   [ State_111111112112( ~lock8, L_h, k, m ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_can_decryptattwraptemv_attunwraptemv_attenctemv_attdectemv_attsenstemv_attextrtemv_atttrustemv_attwwttemv_attwttemv_attuttemv_0_111111112111[color=#2cd719]:
+   [ State_111111112111( ~lock8, L_h, k, m, v ) ]
+  --[
+  Pred_can_decrypt( attwrap(tem(v)), attunwrap(tem(v)), attenc(tem(v)),
+                    attdec(tem(v)), attsens(tem(v)), attextr(tem(v)), atttrus(tem(v)),
+                    attwwt(tem(v)), attwt(tem(v)), attut(tem(v))
+  )
+  ]->
+   [ State_1111111121111( ~lock8, L_h, k, m, v ) ]
+
+  /*
+  rule (modulo AC) if_can_decryptattwraptemv_attunwraptemv_attenctemv_attdectemv_attsenstemv_attextrtemv_atttrustemv_attwwttemv_attwttemv_attuttemv_0_111111112111[color=#2cd719]:
+     [ State_111111112111( ~lock8, L_h, k, m, v ) ]
+    --[ Pred_can_decrypt( z, z.1, z.2, z.3, z.4, z.5, z.6, z.7, z.8, z.9 )
+    ]->
+     [ State_1111111121111( ~lock8, L_h, k, m, v ) ]
+    variants (modulo AC)
+    1. v     = v.16
+       z     = attwrap(tem(v.16))
+       z.1   = attunwrap(tem(v.16))
+       z.2   = attenc(tem(v.16))
+       z.3   = attdec(tem(v.16))
+       z.4   = attsens(tem(v.16))
+       z.5   = attextr(tem(v.16))
+       z.6   = atttrus(tem(v.16))
+       z.7   = attwwt(tem(v.16))
+       z.8   = attwt(tem(v.16))
+       z.9   = attut(tem(v.16))
+    
+    2. v     = <x.16, x.17>
+       z     = attwrap(x.17)
+       z.1   = attunwrap(x.17)
+       z.2   = attenc(x.17)
+       z.3   = attdec(x.17)
+       z.4   = attsens(x.17)
+       z.5   = attextr(x.17)
+       z.6   = atttrus(x.17)
+       z.7   = attwwt(x.17)
+       z.8   = attwt(x.17)
+       z.9   = attut(x.17)
+    
+    3. v     = <x.16, x.17, x.18, x.19, x.20, x.21, x.22, x.23, x.24, x.25, 
+                x.26>
+       z     = x.17
+       z.1   = x.18
+       z.2   = x.19
+       z.3   = x.20
+       z.4   = x.21
+       z.5   = x.22
+       z.6   = x.23
+       z.7   = x.24
+       z.8   = x.25
+       z.9   = x.26
+  */
+
+rule (modulo E) if_can_decryptattwraptemv_attunwraptemv_attenctemv_attdectemv_attsenstemv_attextrtemv_atttrustemv_attwwttemv_attwttemv_attuttemv_1_111111112111[color=#2cd719]:
+   [ State_111111112111( ~lock8, L_h, k, m, v ) ]
+  --[
+  Pred_not_can_decrypt( attwrap(tem(v)), attunwrap(tem(v)), attenc(tem(v)),
+                        attdec(tem(v)), attsens(tem(v)), attextr(tem(v)), atttrus(tem(v)),
+                        attwwt(tem(v)), attwt(tem(v)), attut(tem(v))
+  )
+  ]->
+   [ State_1111111121112( ~lock8, L_h, k, m, v ) ]
+
+  /*
+  rule (modulo AC) if_can_decryptattwraptemv_attunwraptemv_attenctemv_attdectemv_attsenstemv_attextrtemv_atttrustemv_attwwttemv_attwttemv_attuttemv_1_111111112111[color=#2cd719]:
+     [ State_111111112111( ~lock8, L_h, k, m, v ) ]
+    --[
+    Pred_not_can_decrypt( z, z.1, z.2, z.3, z.4, z.5, z.6, z.7, z.8, z.9 )
+    ]->
+     [ State_1111111121112( ~lock8, L_h, k, m, v ) ]
+    variants (modulo AC)
+    1. v     = v.16
+       z     = attwrap(tem(v.16))
+       z.1   = attunwrap(tem(v.16))
+       z.2   = attenc(tem(v.16))
+       z.3   = attdec(tem(v.16))
+       z.4   = attsens(tem(v.16))
+       z.5   = attextr(tem(v.16))
+       z.6   = atttrus(tem(v.16))
+       z.7   = attwwt(tem(v.16))
+       z.8   = attwt(tem(v.16))
+       z.9   = attut(tem(v.16))
+    
+    2. v     = <x.16, x.17>
+       z     = attwrap(x.17)
+       z.1   = attunwrap(x.17)
+       z.2   = attenc(x.17)
+       z.3   = attdec(x.17)
+       z.4   = attsens(x.17)
+       z.5   = attextr(x.17)
+       z.6   = atttrus(x.17)
+       z.7   = attwwt(x.17)
+       z.8   = attwt(x.17)
+       z.9   = attut(x.17)
+    
+    3. v     = <x.16, x.17, x.18, x.19, x.20, x.21, x.22, x.23, x.24, x.25, 
+                x.26>
+       z     = x.17
+       z.1   = x.18
+       z.2   = x.19
+       z.3   = x.20
+       z.4   = x.21
+       z.5   = x.22
+       z.6   = x.23
+       z.7   = x.24
+       z.8   = x.25
+       z.9   = x.26
+  */
+
+rule (modulo E) if_eqkeyv_k_0_1111111121111[color=#2cd719]:
+   [ State_1111111121111( ~lock8, L_h, k, m, v ) ]
+  --[ Pred_eq( key(v), k ) ]->
+   [ State_11111111211111( ~lock8, L_h, k, m, v ) ]
+
+  /*
+  rule (modulo AC) if_eqkeyv_k_0_1111111121111[color=#2cd719]:
+     [ State_1111111121111( ~lock8, L_h, k, m, v ) ]
+    --[ Pred_eq( z, k ) ]->
+     [ State_11111111211111( ~lock8, L_h, k, m, v ) ]
+    variants (modulo AC)
+    1. v     = v.7
+       z     = key(v.7)
+    
+    2. v     = <x.7, x.8>
+       z     = x.7
+  */
+
+rule (modulo E) if_eqkeyv_k_1_1111111121111[color=#2cd719]:
+   [ State_1111111121111( ~lock8, L_h, k, m, v ) ]
+  --[ Pred_not_eq( key(v), k ) ]->
+   [ State_11111111211112( ~lock8, L_h, k, m, v ) ]
+
+  /*
+  rule (modulo AC) if_eqkeyv_k_1_1111111121111[color=#2cd719]:
+     [ State_1111111121111( ~lock8, L_h, k, m, v ) ]
+    --[ Pred_not_eq( z, k ) ]->
+     [ State_11111111211112( ~lock8, L_h, k, m, v ) ]
+    variants (modulo AC)
+    1. v     = v.7
+       z     = key(v.7)
+    
+    2. v     = <x.7, x.8>
+       z     = x.7
+  */
+
+rule (modulo E) event_DecUsingk_m_11111111211111[color=#2cd719]:
+   [ State_11111111211111( ~lock8, L_h, k, m, v ) ]
+  --[ Event( ), DecUsing( k, m ) ]->
+   [ State_111111112111111( ~lock8, L_h, k, m, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_m_111111112111111[color=#2cd719]:
+   [ State_111111112111111( ~lock8, L_h, k, m, v ) ]
+  -->
+   [ State_1111111121111111( ~lock8, L_h, k, m, v ), Out( m ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_device__1111111121111111[color=#2cd719]:
+   [ State_1111111121111111( ~lock8, L_h, k, m, v ) ]
+  --[ Unlock( $8, ~lock8, 'device' ), Unlock_8( $8, ~lock8, 'device' ) ]->
+   [ State_11111111211111111( ~lock8, L_h, k, m, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111111211111111[color=#2cd719]:
+   [ State_11111111211111111( ~lock8, L_h, k, m, v ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111111211112[color=#2cd719]:
+   [ State_11111111211112( ~lock8, L_h, k, m, v ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111111121112[color=#2cd719]:
+   [ State_1111111121112( ~lock8, L_h, k, m, v ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111112112[color=#2cd719]:
+   [ State_111111112112( ~lock8, L_h, k, m ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_L_h_m__11111112[color=#11ec28]:
+   [ State_11111112( ), In( <L_h, m> ) ] --> [ State_111111121( L_h, m ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_device__111111121[color=#11ec28]:
+   [ State_111111121( L_h, m ), Fr( ~lock7 ) ]
+  --[ Lock( $7, ~lock7, 'device' ), Lock_7( $7, ~lock7, 'device' ) ]->
+   [ State_1111111211( ~lock7, L_h, m ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_obj_L_h_as_v_0_1111111211[color=#11ec28]:
+   [ State_1111111211( ~lock7, L_h, m ) ]
+  --[ IsIn( <'obj', L_h>, v ) ]->
+   [ State_11111112111( ~lock7, L_h, m, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_obj_L_h_as_v_1_1111111211[color=#11ec28]:
+   [ State_1111111211( ~lock7, L_h, m ) ]
+  --[ IsNotSet( <'obj', L_h> ) ]->
+   [ State_11111112112( ~lock7, L_h, m ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_can_encryptattwraptemv_attunwraptemv_attenctemv_attdectemv_attsenstemv_attextrtemv_atttrustemv_attwwttemv_attwttemv_attuttemv_0_11111112111[color=#11ec28]:
+   [ State_11111112111( ~lock7, L_h, m, v ) ]
+  --[
+  Pred_can_encrypt( attwrap(tem(v)), attunwrap(tem(v)), attenc(tem(v)),
+                    attdec(tem(v)), attsens(tem(v)), attextr(tem(v)), atttrus(tem(v)),
+                    attwwt(tem(v)), attwt(tem(v)), attut(tem(v))
+  )
+  ]->
+   [ State_111111121111( ~lock7, L_h, m, v ) ]
+
+  /*
+  rule (modulo AC) if_can_encryptattwraptemv_attunwraptemv_attenctemv_attdectemv_attsenstemv_attextrtemv_atttrustemv_attwwttemv_attwttemv_attuttemv_0_11111112111[color=#11ec28]:
+     [ State_11111112111( ~lock7, L_h, m, v ) ]
+    --[ Pred_can_encrypt( z, z.1, z.2, z.3, z.4, z.5, z.6, z.7, z.8, z.9 )
+    ]->
+     [ State_111111121111( ~lock7, L_h, m, v ) ]
+    variants (modulo AC)
+    1. v     = v.15
+       z     = attwrap(tem(v.15))
+       z.1   = attunwrap(tem(v.15))
+       z.2   = attenc(tem(v.15))
+       z.3   = attdec(tem(v.15))
+       z.4   = attsens(tem(v.15))
+       z.5   = attextr(tem(v.15))
+       z.6   = atttrus(tem(v.15))
+       z.7   = attwwt(tem(v.15))
+       z.8   = attwt(tem(v.15))
+       z.9   = attut(tem(v.15))
+    
+    2. v     = <x.15, x.16>
+       z     = attwrap(x.16)
+       z.1   = attunwrap(x.16)
+       z.2   = attenc(x.16)
+       z.3   = attdec(x.16)
+       z.4   = attsens(x.16)
+       z.5   = attextr(x.16)
+       z.6   = atttrus(x.16)
+       z.7   = attwwt(x.16)
+       z.8   = attwt(x.16)
+       z.9   = attut(x.16)
+    
+    3. v     = <x.15, x.16, x.17, x.18, x.19, x.20, x.21, x.22, x.23, x.24, 
+                x.25>
+       z     = x.16
+       z.1   = x.17
+       z.2   = x.18
+       z.3   = x.19
+       z.4   = x.20
+       z.5   = x.21
+       z.6   = x.22
+       z.7   = x.23
+       z.8   = x.24
+       z.9   = x.25
+  */
+
+rule (modulo E) if_can_encryptattwraptemv_attunwraptemv_attenctemv_attdectemv_attsenstemv_attextrtemv_atttrustemv_attwwttemv_attwttemv_attuttemv_1_11111112111[color=#11ec28]:
+   [ State_11111112111( ~lock7, L_h, m, v ) ]
+  --[
+  Pred_not_can_encrypt( attwrap(tem(v)), attunwrap(tem(v)), attenc(tem(v)),
+                        attdec(tem(v)), attsens(tem(v)), attextr(tem(v)), atttrus(tem(v)),
+                        attwwt(tem(v)), attwt(tem(v)), attut(tem(v))
+  )
+  ]->
+   [ State_111111121112( ~lock7, L_h, m, v ) ]
+
+  /*
+  rule (modulo AC) if_can_encryptattwraptemv_attunwraptemv_attenctemv_attdectemv_attsenstemv_attextrtemv_atttrustemv_attwwttemv_attwttemv_attuttemv_1_11111112111[color=#11ec28]:
+     [ State_11111112111( ~lock7, L_h, m, v ) ]
+    --[
+    Pred_not_can_encrypt( z, z.1, z.2, z.3, z.4, z.5, z.6, z.7, z.8, z.9 )
+    ]->
+     [ State_111111121112( ~lock7, L_h, m, v ) ]
+    variants (modulo AC)
+    1. v     = v.15
+       z     = attwrap(tem(v.15))
+       z.1   = attunwrap(tem(v.15))
+       z.2   = attenc(tem(v.15))
+       z.3   = attdec(tem(v.15))
+       z.4   = attsens(tem(v.15))
+       z.5   = attextr(tem(v.15))
+       z.6   = atttrus(tem(v.15))
+       z.7   = attwwt(tem(v.15))
+       z.8   = attwt(tem(v.15))
+       z.9   = attut(tem(v.15))
+    
+    2. v     = <x.15, x.16>
+       z     = attwrap(x.16)
+       z.1   = attunwrap(x.16)
+       z.2   = attenc(x.16)
+       z.3   = attdec(x.16)
+       z.4   = attsens(x.16)
+       z.5   = attextr(x.16)
+       z.6   = atttrus(x.16)
+       z.7   = attwwt(x.16)
+       z.8   = attwt(x.16)
+       z.9   = attut(x.16)
+    
+    3. v     = <x.15, x.16, x.17, x.18, x.19, x.20, x.21, x.22, x.23, x.24, 
+                x.25>
+       z     = x.16
+       z.1   = x.17
+       z.2   = x.18
+       z.3   = x.19
+       z.4   = x.20
+       z.5   = x.21
+       z.6   = x.22
+       z.7   = x.23
+       z.8   = x.24
+       z.9   = x.25
+  */
+
+rule (modulo E) event_EncUsingkeyv_m_111111121111[color=#11ec28]:
+   [ State_111111121111( ~lock7, L_h, m, v ) ]
+  --[ Event( ), EncUsing( key(v), m ) ]->
+   [ State_1111111211111( ~lock7, L_h, m, v ) ]
+
+  /*
+  rule (modulo AC) event_EncUsingkeyv_m_111111121111[color=#11ec28]:
+     [ State_111111121111( ~lock7, L_h, m, v ) ]
+    --[ Event( ), EncUsing( z, m ) ]->
+     [ State_1111111211111( ~lock7, L_h, m, v ) ]
+    variants (modulo AC)
+    1. v     = v.6
+       z     = key(v.6)
+    
+    2. v     = <x.6, x.7>
+       z     = x.6
+  */
+
+rule (modulo E) out_sencm_keyv_1111111211111[color=#11ec28]:
+   [ State_1111111211111( ~lock7, L_h, m, v ) ]
+  -->
+   [ State_11111112111111( ~lock7, L_h, m, v ), Out( senc(m, key(v)) ) ]
+
+  /*
+  rule (modulo AC) out_sencm_keyv_1111111211111[color=#11ec28]:
+     [ State_1111111211111( ~lock7, L_h, m, v ) ]
+    -->
+     [ State_11111112111111( ~lock7, L_h, m, v ), Out( senc(m, z) ) ]
+    variants (modulo AC)
+    1. v     = v.6
+       z     = key(v.6)
+    
+    2. v     = <x.6, x.7>
+       z     = x.6
+  */
+
+rule (modulo E) unlock_device__11111112111111[color=#11ec28]:
+   [ State_11111112111111( ~lock7, L_h, m, v ) ]
+  --[ Unlock( $7, ~lock7, 'device' ), Unlock_7( $7, ~lock7, 'device' ) ]->
+   [ State_111111121111111( ~lock7, L_h, m, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111121111111[color=#11ec28]:
+   [ State_111111121111111( ~lock7, L_h, m, v ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111121112[color=#11ec28]:
+   [ State_111111121112( ~lock7, L_h, m, v ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111112112[color=#11ec28]:
+   [ State_11111112112( ~lock7, L_h, m ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_h1_h2__1111112[color=#45d1e2]:
+   [ State_1111112( ), In( <h1, h2> ) ] --> [ State_11111121( h1, h2 ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_device__11111121[color=#45d1e2]:
+   [ State_11111121( h1, h2 ), Fr( ~lock10 ) ]
+  --[ Lock( $10, ~lock10, 'device' ), Lock_10( $10, ~lock10, 'device' ) ]->
+   [ State_111111211( ~lock10, h1, h2 ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_obj_h1_as_v1_0_111111211[color=#45d1e2]:
+   [ State_111111211( ~lock10, h1, h2 ) ]
+  --[ IsIn( <'obj', h1>, v1 ) ]->
+   [ State_1111112111( ~lock10, h1, h2, v1 ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_obj_h1_as_v1_1_111111211[color=#45d1e2]:
+   [ State_111111211( ~lock10, h1, h2 ) ]
+  --[ IsNotSet( <'obj', h1> ) ]->
+   [ State_1111112112( ~lock10, h1, h2 ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_obj_h2_as_v2_0_1111112111[color=#45d1e2]:
+   [ State_1111112111( ~lock10, h1, h2, v1 ) ]
+  --[ IsIn( <'obj', h2>, v2 ) ]->
+   [ State_11111121111( ~lock10, h1, h2, v1, v2 ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_obj_h2_as_v2_1_1111112111[color=#45d1e2]:
+   [ State_1111112111( ~lock10, h1, h2, v1 ) ]
+  --[ IsNotSet( <'obj', h2> ) ]->
+   [ State_11111121112( ~lock10, h1, h2, v1 ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_can_wrapattwraptemv1_attunwraptemv1_attenctemv1_attdectemv1_attsenstemv1_attextrtemv1_atttrustemv1_attwwttemv1_attwttemv1_attuttemv1_attwraptemv2_attunwraptemv2_attenctemv2_attdectemv2_attsenstemv2_attextrtemv2_atttrustemv2_attwwttemv2_attwttemv2_attuttemv2_0_11111121111[color=#45d1e2]:
+   [ State_11111121111( ~lock10, h1, h2, v1, v2 ) ]
+  --[
+  Pred_can_wrap( attwrap(tem(v1)), attunwrap(tem(v1)), attenc(tem(v1)),
+                 attdec(tem(v1)), attsens(tem(v1)), attextr(tem(v1)), atttrus(tem(v1)),
+                 attwwt(tem(v1)), attwt(tem(v1)), attut(tem(v1)), attwrap(tem(v2)),
+                 attunwrap(tem(v2)), attenc(tem(v2)), attdec(tem(v2)), attsens(tem(v2)),
+                 attextr(tem(v2)), atttrus(tem(v2)), attwwt(tem(v2)), attwt(tem(v2)),
+                 attut(tem(v2))
+  )
+  ]->
+   [ State_111111211111( ~lock10, h1, h2, v1, v2 ) ]
+
+  /*
+  rule (modulo AC) if_can_wrapattwraptemv1_attunwraptemv1_attenctemv1_attdectemv1_attsenstemv1_attextrtemv1_atttrustemv1_attwwttemv1_attwttemv1_attuttemv1_attwraptemv2_attunwraptemv2_attenctemv2_attdectemv2_attsenstemv2_attextrtemv2_atttrustemv2_attwwttemv2_attwttemv2_attuttemv2_0_11111121111[color=#45d1e2]:
+     [ State_11111121111( ~lock10, h1, h2, v1, v2 ) ]
+    --[
+    Pred_can_wrap( z, z.1, z.2, z.3, z.4, z.5, z.6, z.7, z.8, z.9, z.10,
+                   z.11, z.12, z.13, z.14, z.15, z.16, z.17, z.18, z.19
+    )
+    ]->
+     [ State_111111211111( ~lock10, h1, h2, v1, v2 ) ]
+    variants (modulo AC)
+    1. v1    = v1.26
+       v2    = v2.26
+       z     = attwrap(tem(v1.26))
+       z.1   = attunwrap(tem(v1.26))
+       z.2   = attenc(tem(v1.26))
+       z.3   = attdec(tem(v1.26))
+       z.4   = attsens(tem(v1.26))
+       z.5   = attextr(tem(v1.26))
+       z.6   = atttrus(tem(v1.26))
+       z.7   = attwwt(tem(v1.26))
+       z.8   = attwt(tem(v1.26))
+       z.9   = attut(tem(v1.26))
+       z.10  = attwrap(tem(v2.26))
+       z.11  = attunwrap(tem(v2.26))
+       z.12  = attenc(tem(v2.26))
+       z.13  = attdec(tem(v2.26))
+       z.14  = attsens(tem(v2.26))
+       z.15  = attextr(tem(v2.26))
+       z.16  = atttrus(tem(v2.26))
+       z.17  = attwwt(tem(v2.26))
+       z.18  = attwt(tem(v2.26))
+       z.19  = attut(tem(v2.26))
+    
+    2. v1    = v1.28
+       v2    = <x.26, x.27>
+       z     = attwrap(tem(v1.28))
+       z.1   = attunwrap(tem(v1.28))
+       z.2   = attenc(tem(v1.28))
+       z.3   = attdec(tem(v1.28))
+       z.4   = attsens(tem(v1.28))
+       z.5   = attextr(tem(v1.28))
+       z.6   = atttrus(tem(v1.28))
+       z.7   = attwwt(tem(v1.28))
+       z.8   = attwt(tem(v1.28))
+       z.9   = attut(tem(v1.28))
+       z.10  = attwrap(x.27)
+       z.11  = attunwrap(x.27)
+       z.12  = attenc(x.27)
+       z.13  = attdec(x.27)
+       z.14  = attsens(x.27)
+       z.15  = attextr(x.27)
+       z.16  = atttrus(x.27)
+       z.17  = attwwt(x.27)
+       z.18  = attwt(x.27)
+       z.19  = attut(x.27)
+    
+    3. v1    = v1.37
+       v2    = <x.26, x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36
+               >
+       z     = attwrap(tem(v1.37))
+       z.1   = attunwrap(tem(v1.37))
+       z.2   = attenc(tem(v1.37))
+       z.3   = attdec(tem(v1.37))
+       z.4   = attsens(tem(v1.37))
+       z.5   = attextr(tem(v1.37))
+       z.6   = atttrus(tem(v1.37))
+       z.7   = attwwt(tem(v1.37))
+       z.8   = attwt(tem(v1.37))
+       z.9   = attut(tem(v1.37))
+       z.10  = x.27
+       z.11  = x.28
+       z.12  = x.29
+       z.13  = x.30
+       z.14  = x.31
+       z.15  = x.32
+       z.16  = x.33
+       z.17  = x.34
+       z.18  = x.35
+       z.19  = x.36
+    
+    4. v1    = <x.26, x.27>
+       v2    = v2.28
+       z     = attwrap(x.27)
+       z.1   = attunwrap(x.27)
+       z.2   = attenc(x.27)
+       z.3   = attdec(x.27)
+       z.4   = attsens(x.27)
+       z.5   = attextr(x.27)
+       z.6   = atttrus(x.27)
+       z.7   = attwwt(x.27)
+       z.8   = attwt(x.27)
+       z.9   = attut(x.27)
+       z.10  = attwrap(tem(v2.28))
+       z.11  = attunwrap(tem(v2.28))
+       z.12  = attenc(tem(v2.28))
+       z.13  = attdec(tem(v2.28))
+       z.14  = attsens(tem(v2.28))
+       z.15  = attextr(tem(v2.28))
+       z.16  = atttrus(tem(v2.28))
+       z.17  = attwwt(tem(v2.28))
+       z.18  = attwt(tem(v2.28))
+       z.19  = attut(tem(v2.28))
+    
+    5. v1    = <x.26, x.27>
+       v2    = <x.28, x.29>
+       z     = attwrap(x.27)
+       z.1   = attunwrap(x.27)
+       z.2   = attenc(x.27)
+       z.3   = attdec(x.27)
+       z.4   = attsens(x.27)
+       z.5   = attextr(x.27)
+       z.6   = atttrus(x.27)
+       z.7   = attwwt(x.27)
+       z.8   = attwt(x.27)
+       z.9   = attut(x.27)
+       z.10  = attwrap(x.29)
+       z.11  = attunwrap(x.29)
+       z.12  = attenc(x.29)
+       z.13  = attdec(x.29)
+       z.14  = attsens(x.29)
+       z.15  = attextr(x.29)
+       z.16  = atttrus(x.29)
+       z.17  = attwwt(x.29)
+       z.18  = attwt(x.29)
+       z.19  = attut(x.29)
+    
+    6. v1    = <x.26, x.27>
+       v2    = <x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36, x.37, x.38
+               >
+       z     = attwrap(x.27)
+       z.1   = attunwrap(x.27)
+       z.2   = attenc(x.27)
+       z.3   = attdec(x.27)
+       z.4   = attsens(x.27)
+       z.5   = attextr(x.27)
+       z.6   = atttrus(x.27)
+       z.7   = attwwt(x.27)
+       z.8   = attwt(x.27)
+       z.9   = attut(x.27)
+       z.10  = x.29
+       z.11  = x.30
+       z.12  = x.31
+       z.13  = x.32
+       z.14  = x.33
+       z.15  = x.34
+       z.16  = x.35
+       z.17  = x.36
+       z.18  = x.37
+       z.19  = x.38
+    
+    7. v1    = <x.26, x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, 
+                x.36>
+       v2    = v2.37
+       z     = x.27
+       z.1   = x.28
+       z.2   = x.29
+       z.3   = x.30
+       z.4   = x.31
+       z.5   = x.32
+       z.6   = x.33
+       z.7   = x.34
+       z.8   = x.35
+       z.9   = x.36
+       z.10  = attwrap(tem(v2.37))
+       z.11  = attunwrap(tem(v2.37))
+       z.12  = attenc(tem(v2.37))
+       z.13  = attdec(tem(v2.37))
+       z.14  = attsens(tem(v2.37))
+       z.15  = attextr(tem(v2.37))
+       z.16  = atttrus(tem(v2.37))
+       z.17  = attwwt(tem(v2.37))
+       z.18  = attwt(tem(v2.37))
+       z.19  = attut(tem(v2.37))
+    
+    8. v1    = <x.26, x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, 
+                x.36>
+       v2    = <x.37, x.38>
+       z     = x.27
+       z.1   = x.28
+       z.2   = x.29
+       z.3   = x.30
+       z.4   = x.31
+       z.5   = x.32
+       z.6   = x.33
+       z.7   = x.34
+       z.8   = x.35
+       z.9   = x.36
+       z.10  = attwrap(x.38)
+       z.11  = attunwrap(x.38)
+       z.12  = attenc(x.38)
+       z.13  = attdec(x.38)
+       z.14  = attsens(x.38)
+       z.15  = attextr(x.38)
+       z.16  = atttrus(x.38)
+       z.17  = attwwt(x.38)
+       z.18  = attwt(x.38)
+       z.19  = attut(x.38)
+    
+    9. v1    = <x.26, x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, 
+                x.36>
+       v2    = <x.37, x.38, x.39, x.40, x.41, x.42, x.43, x.44, x.45, x.46, x.47
+               >
+       z     = x.27
+       z.1   = x.28
+       z.2   = x.29
+       z.3   = x.30
+       z.4   = x.31
+       z.5   = x.32
+       z.6   = x.33
+       z.7   = x.34
+       z.8   = x.35
+       z.9   = x.36
+       z.10  = x.38
+       z.11  = x.39
+       z.12  = x.40
+       z.13  = x.41
+       z.14  = x.42
+       z.15  = x.43
+       z.16  = x.44
+       z.17  = x.45
+       z.18  = x.46
+       z.19  = x.47
+  */
+
+rule (modulo E) if_can_wrapattwraptemv1_attunwraptemv1_attenctemv1_attdectemv1_attsenstemv1_attextrtemv1_atttrustemv1_attwwttemv1_attwttemv1_attuttemv1_attwraptemv2_attunwraptemv2_attenctemv2_attdectemv2_attsenstemv2_attextrtemv2_atttrustemv2_attwwttemv2_attwttemv2_attuttemv2_1_11111121111[color=#45d1e2]:
+   [ State_11111121111( ~lock10, h1, h2, v1, v2 ) ]
+  --[
+  Pred_not_can_wrap( attwrap(tem(v1)), attunwrap(tem(v1)), attenc(tem(v1)),
+                     attdec(tem(v1)), attsens(tem(v1)), attextr(tem(v1)), atttrus(tem(v1)),
+                     attwwt(tem(v1)), attwt(tem(v1)), attut(tem(v1)), attwrap(tem(v2)),
+                     attunwrap(tem(v2)), attenc(tem(v2)), attdec(tem(v2)), attsens(tem(v2)),
+                     attextr(tem(v2)), atttrus(tem(v2)), attwwt(tem(v2)), attwt(tem(v2)),
+                     attut(tem(v2))
+  )
+  ]->
+   [ State_111111211112( ~lock10, h1, h2, v1, v2 ) ]
+
+  /*
+  rule (modulo AC) if_can_wrapattwraptemv1_attunwraptemv1_attenctemv1_attdectemv1_attsenstemv1_attextrtemv1_atttrustemv1_attwwttemv1_attwttemv1_attuttemv1_attwraptemv2_attunwraptemv2_attenctemv2_attdectemv2_attsenstemv2_attextrtemv2_atttrustemv2_attwwttemv2_attwttemv2_attuttemv2_1_11111121111[color=#45d1e2]:
+     [ State_11111121111( ~lock10, h1, h2, v1, v2 ) ]
+    --[
+    Pred_not_can_wrap( z, z.1, z.2, z.3, z.4, z.5, z.6, z.7, z.8, z.9, z.10,
+                       z.11, z.12, z.13, z.14, z.15, z.16, z.17, z.18, z.19
+    )
+    ]->
+     [ State_111111211112( ~lock10, h1, h2, v1, v2 ) ]
+    variants (modulo AC)
+    1. v1    = v1.26
+       v2    = v2.26
+       z     = attwrap(tem(v1.26))
+       z.1   = attunwrap(tem(v1.26))
+       z.2   = attenc(tem(v1.26))
+       z.3   = attdec(tem(v1.26))
+       z.4   = attsens(tem(v1.26))
+       z.5   = attextr(tem(v1.26))
+       z.6   = atttrus(tem(v1.26))
+       z.7   = attwwt(tem(v1.26))
+       z.8   = attwt(tem(v1.26))
+       z.9   = attut(tem(v1.26))
+       z.10  = attwrap(tem(v2.26))
+       z.11  = attunwrap(tem(v2.26))
+       z.12  = attenc(tem(v2.26))
+       z.13  = attdec(tem(v2.26))
+       z.14  = attsens(tem(v2.26))
+       z.15  = attextr(tem(v2.26))
+       z.16  = atttrus(tem(v2.26))
+       z.17  = attwwt(tem(v2.26))
+       z.18  = attwt(tem(v2.26))
+       z.19  = attut(tem(v2.26))
+    
+    2. v1    = v1.28
+       v2    = <x.26, x.27>
+       z     = attwrap(tem(v1.28))
+       z.1   = attunwrap(tem(v1.28))
+       z.2   = attenc(tem(v1.28))
+       z.3   = attdec(tem(v1.28))
+       z.4   = attsens(tem(v1.28))
+       z.5   = attextr(tem(v1.28))
+       z.6   = atttrus(tem(v1.28))
+       z.7   = attwwt(tem(v1.28))
+       z.8   = attwt(tem(v1.28))
+       z.9   = attut(tem(v1.28))
+       z.10  = attwrap(x.27)
+       z.11  = attunwrap(x.27)
+       z.12  = attenc(x.27)
+       z.13  = attdec(x.27)
+       z.14  = attsens(x.27)
+       z.15  = attextr(x.27)
+       z.16  = atttrus(x.27)
+       z.17  = attwwt(x.27)
+       z.18  = attwt(x.27)
+       z.19  = attut(x.27)
+    
+    3. v1    = v1.37
+       v2    = <x.26, x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36
+               >
+       z     = attwrap(tem(v1.37))
+       z.1   = attunwrap(tem(v1.37))
+       z.2   = attenc(tem(v1.37))
+       z.3   = attdec(tem(v1.37))
+       z.4   = attsens(tem(v1.37))
+       z.5   = attextr(tem(v1.37))
+       z.6   = atttrus(tem(v1.37))
+       z.7   = attwwt(tem(v1.37))
+       z.8   = attwt(tem(v1.37))
+       z.9   = attut(tem(v1.37))
+       z.10  = x.27
+       z.11  = x.28
+       z.12  = x.29
+       z.13  = x.30
+       z.14  = x.31
+       z.15  = x.32
+       z.16  = x.33
+       z.17  = x.34
+       z.18  = x.35
+       z.19  = x.36
+    
+    4. v1    = <x.26, x.27>
+       v2    = v2.28
+       z     = attwrap(x.27)
+       z.1   = attunwrap(x.27)
+       z.2   = attenc(x.27)
+       z.3   = attdec(x.27)
+       z.4   = attsens(x.27)
+       z.5   = attextr(x.27)
+       z.6   = atttrus(x.27)
+       z.7   = attwwt(x.27)
+       z.8   = attwt(x.27)
+       z.9   = attut(x.27)
+       z.10  = attwrap(tem(v2.28))
+       z.11  = attunwrap(tem(v2.28))
+       z.12  = attenc(tem(v2.28))
+       z.13  = attdec(tem(v2.28))
+       z.14  = attsens(tem(v2.28))
+       z.15  = attextr(tem(v2.28))
+       z.16  = atttrus(tem(v2.28))
+       z.17  = attwwt(tem(v2.28))
+       z.18  = attwt(tem(v2.28))
+       z.19  = attut(tem(v2.28))
+    
+    5. v1    = <x.26, x.27>
+       v2    = <x.28, x.29>
+       z     = attwrap(x.27)
+       z.1   = attunwrap(x.27)
+       z.2   = attenc(x.27)
+       z.3   = attdec(x.27)
+       z.4   = attsens(x.27)
+       z.5   = attextr(x.27)
+       z.6   = atttrus(x.27)
+       z.7   = attwwt(x.27)
+       z.8   = attwt(x.27)
+       z.9   = attut(x.27)
+       z.10  = attwrap(x.29)
+       z.11  = attunwrap(x.29)
+       z.12  = attenc(x.29)
+       z.13  = attdec(x.29)
+       z.14  = attsens(x.29)
+       z.15  = attextr(x.29)
+       z.16  = atttrus(x.29)
+       z.17  = attwwt(x.29)
+       z.18  = attwt(x.29)
+       z.19  = attut(x.29)
+    
+    6. v1    = <x.26, x.27>
+       v2    = <x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36, x.37, x.38
+               >
+       z     = attwrap(x.27)
+       z.1   = attunwrap(x.27)
+       z.2   = attenc(x.27)
+       z.3   = attdec(x.27)
+       z.4   = attsens(x.27)
+       z.5   = attextr(x.27)
+       z.6   = atttrus(x.27)
+       z.7   = attwwt(x.27)
+       z.8   = attwt(x.27)
+       z.9   = attut(x.27)
+       z.10  = x.29
+       z.11  = x.30
+       z.12  = x.31
+       z.13  = x.32
+       z.14  = x.33
+       z.15  = x.34
+       z.16  = x.35
+       z.17  = x.36
+       z.18  = x.37
+       z.19  = x.38
+    
+    7. v1    = <x.26, x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, 
+                x.36>
+       v2    = v2.37
+       z     = x.27
+       z.1   = x.28
+       z.2   = x.29
+       z.3   = x.30
+       z.4   = x.31
+       z.5   = x.32
+       z.6   = x.33
+       z.7   = x.34
+       z.8   = x.35
+       z.9   = x.36
+       z.10  = attwrap(tem(v2.37))
+       z.11  = attunwrap(tem(v2.37))
+       z.12  = attenc(tem(v2.37))
+       z.13  = attdec(tem(v2.37))
+       z.14  = attsens(tem(v2.37))
+       z.15  = attextr(tem(v2.37))
+       z.16  = atttrus(tem(v2.37))
+       z.17  = attwwt(tem(v2.37))
+       z.18  = attwt(tem(v2.37))
+       z.19  = attut(tem(v2.37))
+    
+    8. v1    = <x.26, x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, 
+                x.36>
+       v2    = <x.37, x.38>
+       z     = x.27
+       z.1   = x.28
+       z.2   = x.29
+       z.3   = x.30
+       z.4   = x.31
+       z.5   = x.32
+       z.6   = x.33
+       z.7   = x.34
+       z.8   = x.35
+       z.9   = x.36
+       z.10  = attwrap(x.38)
+       z.11  = attunwrap(x.38)
+       z.12  = attenc(x.38)
+       z.13  = attdec(x.38)
+       z.14  = attsens(x.38)
+       z.15  = attextr(x.38)
+       z.16  = atttrus(x.38)
+       z.17  = attwwt(x.38)
+       z.18  = attwt(x.38)
+       z.19  = attut(x.38)
+    
+    9. v1    = <x.26, x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, 
+                x.36>
+       v2    = <x.37, x.38, x.39, x.40, x.41, x.42, x.43, x.44, x.45, x.46, x.47
+               >
+       z     = x.27
+       z.1   = x.28
+       z.2   = x.29
+       z.3   = x.30
+       z.4   = x.31
+       z.5   = x.32
+       z.6   = x.33
+       z.7   = x.34
+       z.8   = x.35
+       z.9   = x.36
+       z.10  = x.38
+       z.11  = x.39
+       z.12  = x.40
+       z.13  = x.41
+       z.14  = x.42
+       z.15  = x.43
+       z.16  = x.44
+       z.17  = x.45
+       z.18  = x.46
+       z.19  = x.47
+  */
+
+rule (modulo E) lookup_F_template_attwttemv1_as_wt_0_111111211111[color=#45d1e2]:
+   [ State_111111211111( ~lock10, h1, h2, v1, v2 ) ]
+  --[ IsIn( <'F_template', attwt(tem(v1))>, wt ) ]->
+   [ State_1111112111111( ~lock10, h1, h2, v1, v2, wt ) ]
+
+  /*
+  rule (modulo AC) lookup_F_template_attwttemv1_as_wt_0_111111211111[color=#45d1e2]:
+     [ State_111111211111( ~lock10, h1, h2, v1, v2 ) ]
+    --[ IsIn( <'F_template', z>, wt ) ]->
+     [ State_1111112111111( ~lock10, h1, h2, v1, v2, wt ) ]
+    variants (modulo AC)
+    1. v1    = v1.10
+       z     = attwt(tem(v1.10))
+    
+    2. v1    = <x.11, x.12>
+       z     = attwt(x.12)
+    
+    3. v1    = <x.21, x.22, x.23, x.24, x.25, x.26, x.27, x.28, x.29, z.20, 
+                x.31>
+       z     = z.20
+  */
+
+rule (modulo E) lookup_F_template_attwttemv1_as_wt_1_111111211111[color=#45d1e2]:
+   [ State_111111211111( ~lock10, h1, h2, v1, v2 ) ]
+  --[ IsNotSet( <'F_template', attwt(tem(v1))> ) ]->
+   [ State_1111112111112( ~lock10, h1, h2, v1, v2 ) ]
+
+  /*
+  rule (modulo AC) lookup_F_template_attwttemv1_as_wt_1_111111211111[color=#45d1e2]:
+     [ State_111111211111( ~lock10, h1, h2, v1, v2 ) ]
+    --[ IsNotSet( <'F_template', z> ) ]->
+     [ State_1111112111112( ~lock10, h1, h2, v1, v2 ) ]
+    variants (modulo AC)
+    1. v1    = v1.9
+       z     = attwt(tem(v1.9))
+    
+    2. v1    = <x.10, x.11>
+       z     = attwt(x.11)
+    
+    3. v1    = <x.20, x.21, x.22, x.23, x.24, x.25, x.26, x.27, x.28, z.19, 
+                x.30>
+       z     = z.19
+  */
+
+rule (modulo E) if_permitsattwrapwt_attunwrapwt_attencwt_attdecwt_attsenswt_attextrwt_atttruswt_attwwtwt_attwtwt_attutwt_attwraptemv2_attunwraptemv2_attenctemv2_attdectemv2_attsenstemv2_attextrtemv2_atttrustemv2_attwwttemv2_attwttemv2_attuttemv2_0_1111112111111[color=#45d1e2]:
+   [ State_1111112111111( ~lock10, h1, h2, v1, v2, wt ) ]
+  --[
+  Pred_permits( attwrap(wt), attunwrap(wt), attenc(wt), attdec(wt),
+                attsens(wt), attextr(wt), atttrus(wt), attwwt(wt), attwt(wt), attut(wt),
+                attwrap(tem(v2)), attunwrap(tem(v2)), attenc(tem(v2)), attdec(tem(v2)),
+                attsens(tem(v2)), attextr(tem(v2)), atttrus(tem(v2)), attwwt(tem(v2)),
+                attwt(tem(v2)), attut(tem(v2))
+  )
+  ]->
+   [ State_11111121111111( ~lock10, h1, h2, v1, v2, wt ) ]
+
+  /*
+  rule (modulo AC) if_permitsattwrapwt_attunwrapwt_attencwt_attdecwt_attsenswt_attextrwt_atttruswt_attwwtwt_attwtwt_attutwt_attwraptemv2_attunwraptemv2_attenctemv2_attdectemv2_attsenstemv2_attextrtemv2_atttrustemv2_attwwttemv2_attwttemv2_attuttemv2_0_1111112111111[color=#45d1e2]:
+     [ State_1111112111111( ~lock10, h1, h2, v1, v2, wt ) ]
+    --[
+    Pred_permits( z, z.1, z.2, z.3, z.4, z.5, z.6, z.7, z.8, z.9, z.10, z.11,
+                  z.12, z.13, z.14, z.15, z.16, z.17, z.18, z.19
+    )
+    ]->
+     [ State_11111121111111( ~lock10, h1, h2, v1, v2, wt ) ]
+    variants (modulo AC)
+    1. v2    = v2.27
+       wt    = wt.27
+       z     = attwrap(wt.27)
+       z.1   = attunwrap(wt.27)
+       z.2   = attenc(wt.27)
+       z.3   = attdec(wt.27)
+       z.4   = attsens(wt.27)
+       z.5   = attextr(wt.27)
+       z.6   = atttrus(wt.27)
+       z.7   = attwwt(wt.27)
+       z.8   = attwt(wt.27)
+       z.9   = attut(wt.27)
+       z.10  = attwrap(tem(v2.27))
+       z.11  = attunwrap(tem(v2.27))
+       z.12  = attenc(tem(v2.27))
+       z.13  = attdec(tem(v2.27))
+       z.14  = attsens(tem(v2.27))
+       z.15  = attextr(tem(v2.27))
+       z.16  = atttrus(tem(v2.27))
+       z.17  = attwwt(tem(v2.27))
+       z.18  = attwt(tem(v2.27))
+       z.19  = attut(tem(v2.27))
+    
+    2. v2    = v2.37
+       wt    = <x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36>
+       z     = x.27
+       z.1   = x.28
+       z.2   = x.29
+       z.3   = x.30
+       z.4   = x.31
+       z.5   = x.32
+       z.6   = x.33
+       z.7   = x.34
+       z.8   = x.35
+       z.9   = x.36
+       z.10  = attwrap(tem(v2.37))
+       z.11  = attunwrap(tem(v2.37))
+       z.12  = attenc(tem(v2.37))
+       z.13  = attdec(tem(v2.37))
+       z.14  = attsens(tem(v2.37))
+       z.15  = attextr(tem(v2.37))
+       z.16  = atttrus(tem(v2.37))
+       z.17  = attwwt(tem(v2.37))
+       z.18  = attwt(tem(v2.37))
+       z.19  = attut(tem(v2.37))
+    
+    3. v2    = <x.27, x.28>
+       wt    = wt.29
+       z     = attwrap(wt.29)
+       z.1   = attunwrap(wt.29)
+       z.2   = attenc(wt.29)
+       z.3   = attdec(wt.29)
+       z.4   = attsens(wt.29)
+       z.5   = attextr(wt.29)
+       z.6   = atttrus(wt.29)
+       z.7   = attwwt(wt.29)
+       z.8   = attwt(wt.29)
+       z.9   = attut(wt.29)
+       z.10  = attwrap(x.28)
+       z.11  = attunwrap(x.28)
+       z.12  = attenc(x.28)
+       z.13  = attdec(x.28)
+       z.14  = attsens(x.28)
+       z.15  = attextr(x.28)
+       z.16  = atttrus(x.28)
+       z.17  = attwwt(x.28)
+       z.18  = attwt(x.28)
+       z.19  = attut(x.28)
+    
+    4. v2    = <x.27, x.28>
+       wt    = <x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36, x.37, x.38>
+       z     = x.29
+       z.1   = x.30
+       z.2   = x.31
+       z.3   = x.32
+       z.4   = x.33
+       z.5   = x.34
+       z.6   = x.35
+       z.7   = x.36
+       z.8   = x.37
+       z.9   = x.38
+       z.10  = attwrap(x.28)
+       z.11  = attunwrap(x.28)
+       z.12  = attenc(x.28)
+       z.13  = attdec(x.28)
+       z.14  = attsens(x.28)
+       z.15  = attextr(x.28)
+       z.16  = atttrus(x.28)
+       z.17  = attwwt(x.28)
+       z.18  = attwt(x.28)
+       z.19  = attut(x.28)
+    
+    5. v2    = <x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36, 
+                x.37>
+       wt    = wt.38
+       z     = attwrap(wt.38)
+       z.1   = attunwrap(wt.38)
+       z.2   = attenc(wt.38)
+       z.3   = attdec(wt.38)
+       z.4   = attsens(wt.38)
+       z.5   = attextr(wt.38)
+       z.6   = atttrus(wt.38)
+       z.7   = attwwt(wt.38)
+       z.8   = attwt(wt.38)
+       z.9   = attut(wt.38)
+       z.10  = x.28
+       z.11  = x.29
+       z.12  = x.30
+       z.13  = x.31
+       z.14  = x.32
+       z.15  = x.33
+       z.16  = x.34
+       z.17  = x.35
+       z.18  = x.36
+       z.19  = x.37
+    
+    6. v2    = <x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36, 
+                x.37>
+       wt    = <x.38, x.39, x.40, x.41, x.42, x.43, x.44, x.45, x.46, x.47>
+       z     = x.38
+       z.1   = x.39
+       z.2   = x.40
+       z.3   = x.41
+       z.4   = x.42
+       z.5   = x.43
+       z.6   = x.44
+       z.7   = x.45
+       z.8   = x.46
+       z.9   = x.47
+       z.10  = x.28
+       z.11  = x.29
+       z.12  = x.30
+       z.13  = x.31
+       z.14  = x.32
+       z.15  = x.33
+       z.16  = x.34
+       z.17  = x.35
+       z.18  = x.36
+       z.19  = x.37
+  */
+
+rule (modulo E) if_permitsattwrapwt_attunwrapwt_attencwt_attdecwt_attsenswt_attextrwt_atttruswt_attwwtwt_attwtwt_attutwt_attwraptemv2_attunwraptemv2_attenctemv2_attdectemv2_attsenstemv2_attextrtemv2_atttrustemv2_attwwttemv2_attwttemv2_attuttemv2_1_1111112111111[color=#45d1e2]:
+   [ State_1111112111111( ~lock10, h1, h2, v1, v2, wt ) ]
+  --[
+  Pred_not_permits( attwrap(wt), attunwrap(wt), attenc(wt), attdec(wt),
+                    attsens(wt), attextr(wt), atttrus(wt), attwwt(wt), attwt(wt), attut(wt),
+                    attwrap(tem(v2)), attunwrap(tem(v2)), attenc(tem(v2)), attdec(tem(v2)),
+                    attsens(tem(v2)), attextr(tem(v2)), atttrus(tem(v2)), attwwt(tem(v2)),
+                    attwt(tem(v2)), attut(tem(v2))
+  )
+  ]->
+   [ State_11111121111112( ~lock10, h1, h2, v1, v2, wt ) ]
+
+  /*
+  rule (modulo AC) if_permitsattwrapwt_attunwrapwt_attencwt_attdecwt_attsenswt_attextrwt_atttruswt_attwwtwt_attwtwt_attutwt_attwraptemv2_attunwraptemv2_attenctemv2_attdectemv2_attsenstemv2_attextrtemv2_atttrustemv2_attwwttemv2_attwttemv2_attuttemv2_1_1111112111111[color=#45d1e2]:
+     [ State_1111112111111( ~lock10, h1, h2, v1, v2, wt ) ]
+    --[
+    Pred_not_permits( z, z.1, z.2, z.3, z.4, z.5, z.6, z.7, z.8, z.9, z.10,
+                      z.11, z.12, z.13, z.14, z.15, z.16, z.17, z.18, z.19
+    )
+    ]->
+     [ State_11111121111112( ~lock10, h1, h2, v1, v2, wt ) ]
+    variants (modulo AC)
+    1. v2    = v2.27
+       wt    = wt.27
+       z     = attwrap(wt.27)
+       z.1   = attunwrap(wt.27)
+       z.2   = attenc(wt.27)
+       z.3   = attdec(wt.27)
+       z.4   = attsens(wt.27)
+       z.5   = attextr(wt.27)
+       z.6   = atttrus(wt.27)
+       z.7   = attwwt(wt.27)
+       z.8   = attwt(wt.27)
+       z.9   = attut(wt.27)
+       z.10  = attwrap(tem(v2.27))
+       z.11  = attunwrap(tem(v2.27))
+       z.12  = attenc(tem(v2.27))
+       z.13  = attdec(tem(v2.27))
+       z.14  = attsens(tem(v2.27))
+       z.15  = attextr(tem(v2.27))
+       z.16  = atttrus(tem(v2.27))
+       z.17  = attwwt(tem(v2.27))
+       z.18  = attwt(tem(v2.27))
+       z.19  = attut(tem(v2.27))
+    
+    2. v2    = v2.37
+       wt    = <x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36>
+       z     = x.27
+       z.1   = x.28
+       z.2   = x.29
+       z.3   = x.30
+       z.4   = x.31
+       z.5   = x.32
+       z.6   = x.33
+       z.7   = x.34
+       z.8   = x.35
+       z.9   = x.36
+       z.10  = attwrap(tem(v2.37))
+       z.11  = attunwrap(tem(v2.37))
+       z.12  = attenc(tem(v2.37))
+       z.13  = attdec(tem(v2.37))
+       z.14  = attsens(tem(v2.37))
+       z.15  = attextr(tem(v2.37))
+       z.16  = atttrus(tem(v2.37))
+       z.17  = attwwt(tem(v2.37))
+       z.18  = attwt(tem(v2.37))
+       z.19  = attut(tem(v2.37))
+    
+    3. v2    = <x.27, x.28>
+       wt    = wt.29
+       z     = attwrap(wt.29)
+       z.1   = attunwrap(wt.29)
+       z.2   = attenc(wt.29)
+       z.3   = attdec(wt.29)
+       z.4   = attsens(wt.29)
+       z.5   = attextr(wt.29)
+       z.6   = atttrus(wt.29)
+       z.7   = attwwt(wt.29)
+       z.8   = attwt(wt.29)
+       z.9   = attut(wt.29)
+       z.10  = attwrap(x.28)
+       z.11  = attunwrap(x.28)
+       z.12  = attenc(x.28)
+       z.13  = attdec(x.28)
+       z.14  = attsens(x.28)
+       z.15  = attextr(x.28)
+       z.16  = atttrus(x.28)
+       z.17  = attwwt(x.28)
+       z.18  = attwt(x.28)
+       z.19  = attut(x.28)
+    
+    4. v2    = <x.27, x.28>
+       wt    = <x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36, x.37, x.38>
+       z     = x.29
+       z.1   = x.30
+       z.2   = x.31
+       z.3   = x.32
+       z.4   = x.33
+       z.5   = x.34
+       z.6   = x.35
+       z.7   = x.36
+       z.8   = x.37
+       z.9   = x.38
+       z.10  = attwrap(x.28)
+       z.11  = attunwrap(x.28)
+       z.12  = attenc(x.28)
+       z.13  = attdec(x.28)
+       z.14  = attsens(x.28)
+       z.15  = attextr(x.28)
+       z.16  = atttrus(x.28)
+       z.17  = attwwt(x.28)
+       z.18  = attwt(x.28)
+       z.19  = attut(x.28)
+    
+    5. v2    = <x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36, 
+                x.37>
+       wt    = wt.38
+       z     = attwrap(wt.38)
+       z.1   = attunwrap(wt.38)
+       z.2   = attenc(wt.38)
+       z.3   = attdec(wt.38)
+       z.4   = attsens(wt.38)
+       z.5   = attextr(wt.38)
+       z.6   = atttrus(wt.38)
+       z.7   = attwwt(wt.38)
+       z.8   = attwt(wt.38)
+       z.9   = attut(wt.38)
+       z.10  = x.28
+       z.11  = x.29
+       z.12  = x.30
+       z.13  = x.31
+       z.14  = x.32
+       z.15  = x.33
+       z.16  = x.34
+       z.17  = x.35
+       z.18  = x.36
+       z.19  = x.37
+    
+    6. v2    = <x.27, x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36, 
+                x.37>
+       wt    = <x.38, x.39, x.40, x.41, x.42, x.43, x.44, x.45, x.46, x.47>
+       z     = x.38
+       z.1   = x.39
+       z.2   = x.40
+       z.3   = x.41
+       z.4   = x.42
+       z.5   = x.43
+       z.6   = x.44
+       z.7   = x.45
+       z.8   = x.46
+       z.9   = x.47
+       z.10  = x.28
+       z.11  = x.29
+       z.12  = x.30
+       z.13  = x.31
+       z.14  = x.32
+       z.15  = x.33
+       z.16  = x.34
+       z.17  = x.35
+       z.18  = x.36
+       z.19  = x.37
+  */
+
+rule (modulo E) event_Wrapkeyv1_keyv2_11111121111111[color=#45d1e2]:
+   [ State_11111121111111( ~lock10, h1, h2, v1, v2, wt ) ]
+  --[ Event( ), Wrap( key(v1), key(v2) ) ]->
+   [ State_111111211111111( ~lock10, h1, h2, v1, v2, wt ) ]
+
+  /*
+  rule (modulo AC) event_Wrapkeyv1_keyv2_11111121111111[color=#45d1e2]:
+     [ State_11111121111111( ~lock10, h1, h2, v1, v2, wt ) ]
+    --[ Event( ), Wrap( z, z.1 ) ]->
+     [ State_111111211111111( ~lock10, h1, h2, v1, v2, wt ) ]
+    variants (modulo AC)
+    1. v1    = v1.9
+       v2    = v2.9
+       z     = key(v1.9)
+       z.1   = key(v2.9)
+    
+    2. v1    = v1.11
+       v2    = <x.9, x.10>
+       z     = key(v1.11)
+       z.1   = x.9
+    
+    3. v1    = <x.9, x.10>
+       v2    = v2.11
+       z     = x.9
+       z.1   = key(v2.11)
+    
+    4. v1    = <x.9, x.10>
+       v2    = <x.11, x.12>
+       z     = x.9
+       z.1   = x.11
+  */
+
+rule (modulo E) out_senckeyv2_keyv1_111111211111111[color=#45d1e2]:
+   [ State_111111211111111( ~lock10, h1, h2, v1, v2, wt ) ]
+  -->
+   [
+   State_1111112111111111( ~lock10, h1, h2, v1, v2, wt ),
+   Out( senc(key(v2), key(v1)) )
+   ]
+
+  /*
+  rule (modulo AC) out_senckeyv2_keyv1_111111211111111[color=#45d1e2]:
+     [ State_111111211111111( ~lock10, h1, h2, v1, v2, wt ) ]
+    -->
+     [
+     State_1111112111111111( ~lock10, h1, h2, v1, v2, wt ),
+     Out( senc(z, z.1) )
+     ]
+    variants (modulo AC)
+    1. v1    = v1.9
+       v2    = v2.9
+       z     = key(v2.9)
+       z.1   = key(v1.9)
+    
+    2. v1    = v1.11
+       v2    = <x.9, x.10>
+       z     = x.9
+       z.1   = key(v1.11)
+    
+    3. v1    = <x.9, x.10>
+       v2    = v2.11
+       z     = key(v2.11)
+       z.1   = x.9
+    
+    4. v1    = <x.9, x.10>
+       v2    = <x.11, x.12>
+       z     = x.11
+       z.1   = x.9
+  */
+
+rule (modulo E) unlock_device__1111112111111111[color=#45d1e2]:
+   [ State_1111112111111111( ~lock10, h1, h2, v1, v2, wt ) ]
+  --[ Unlock( $10, ~lock10, 'device' ), Unlock_10( $10, ~lock10, 'device' )
+  ]->
+   [ State_11111121111111111( ~lock10, h1, h2, v1, v2, wt ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111121111111111[color=#45d1e2]:
+   [ State_11111121111111111( ~lock10, h1, h2, v1, v2, wt ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111121111112[color=#45d1e2]:
+   [ State_11111121111112( ~lock10, h1, h2, v1, v2, wt ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111112111112[color=#45d1e2]:
+   [ State_1111112111112( ~lock10, h1, h2, v1, v2 ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111211112[color=#45d1e2]:
+   [ State_111111211112( ~lock10, h1, h2, v1, v2 ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111121112[color=#45d1e2]:
+   [ State_11111121112( ~lock10, h1, h2, v1 ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111112112[color=#45d1e2]:
+   [ State_1111112112( ~lock10, h1, h2 ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_L_h_sencm_k_atts__111112[color=#9f76cd]:
+   [ State_111112( ), In( <L_h, senc(m, k), atts> ) ]
+  -->
+   [ State_1111121( L_h, atts, k, m ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_device__1111121[color=#9f76cd]:
+   [ State_1111121( L_h, atts, k, m ), Fr( ~lock16 ) ]
+  --[ Lock( $16, ~lock16, 'device' ), Lock_16( $16, ~lock16, 'device' ) ]->
+   [ State_11111211( ~lock16, L_h, atts, k, m ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_obj_L_h_as_v_0_11111211[color=#9f76cd]:
+   [ State_11111211( ~lock16, L_h, atts, k, m ) ]
+  --[ IsIn( <'obj', L_h>, v ) ]->
+   [ State_111112111( ~lock16, L_h, atts, k, m, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_obj_L_h_as_v_1_11111211[color=#9f76cd]:
+   [ State_11111211( ~lock16, L_h, atts, k, m ) ]
+  --[ IsNotSet( <'obj', L_h> ) ]->
+   [ State_111112112( ~lock16, L_h, atts, k, m ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_can_unwrapattwraptemv_attunwraptemv_attenctemv_attdectemv_attsenstemv_attextrtemv_atttrustemv_attwwttemv_attwttemv_attuttemv_0_111112111[color=#9f76cd]:
+   [ State_111112111( ~lock16, L_h, atts, k, m, v ) ]
+  --[
+  Pred_can_unwrap( attwrap(tem(v)), attunwrap(tem(v)), attenc(tem(v)),
+                   attdec(tem(v)), attsens(tem(v)), attextr(tem(v)), atttrus(tem(v)),
+                   attwwt(tem(v)), attwt(tem(v)), attut(tem(v))
+  )
+  ]->
+   [ State_1111121111( ~lock16, L_h, atts, k, m, v ) ]
+
+  /*
+  rule (modulo AC) if_can_unwrapattwraptemv_attunwraptemv_attenctemv_attdectemv_attsenstemv_attextrtemv_atttrustemv_attwwttemv_attwttemv_attuttemv_0_111112111[color=#9f76cd]:
+     [ State_111112111( ~lock16, L_h, atts, k, m, v ) ]
+    --[ Pred_can_unwrap( z, z.1, z.2, z.3, z.4, z.5, z.6, z.7, z.8, z.9 ) ]->
+     [ State_1111121111( ~lock16, L_h, atts, k, m, v ) ]
+    variants (modulo AC)
+    1. v     = v.17
+       z     = attwrap(tem(v.17))
+       z.1   = attunwrap(tem(v.17))
+       z.2   = attenc(tem(v.17))
+       z.3   = attdec(tem(v.17))
+       z.4   = attsens(tem(v.17))
+       z.5   = attextr(tem(v.17))
+       z.6   = atttrus(tem(v.17))
+       z.7   = attwwt(tem(v.17))
+       z.8   = attwt(tem(v.17))
+       z.9   = attut(tem(v.17))
+    
+    2. v     = <x.17, x.18>
+       z     = attwrap(x.18)
+       z.1   = attunwrap(x.18)
+       z.2   = attenc(x.18)
+       z.3   = attdec(x.18)
+       z.4   = attsens(x.18)
+       z.5   = attextr(x.18)
+       z.6   = atttrus(x.18)
+       z.7   = attwwt(x.18)
+       z.8   = attwt(x.18)
+       z.9   = attut(x.18)
+    
+    3. v     = <x.17, x.18, x.19, x.20, x.21, x.22, x.23, x.24, x.25, x.26, 
+                x.27>
+       z     = x.18
+       z.1   = x.19
+       z.2   = x.20
+       z.3   = x.21
+       z.4   = x.22
+       z.5   = x.23
+       z.6   = x.24
+       z.7   = x.25
+       z.8   = x.26
+       z.9   = x.27
+  */
+
+rule (modulo E) if_can_unwrapattwraptemv_attunwraptemv_attenctemv_attdectemv_attsenstemv_attextrtemv_atttrustemv_attwwttemv_attwttemv_attuttemv_1_111112111[color=#9f76cd]:
+   [ State_111112111( ~lock16, L_h, atts, k, m, v ) ]
+  --[
+  Pred_not_can_unwrap( attwrap(tem(v)), attunwrap(tem(v)), attenc(tem(v)),
+                       attdec(tem(v)), attsens(tem(v)), attextr(tem(v)), atttrus(tem(v)),
+                       attwwt(tem(v)), attwt(tem(v)), attut(tem(v))
+  )
+  ]->
+   [ State_1111121112( ~lock16, L_h, atts, k, m, v ) ]
+
+  /*
+  rule (modulo AC) if_can_unwrapattwraptemv_attunwraptemv_attenctemv_attdectemv_attsenstemv_attextrtemv_atttrustemv_attwwttemv_attwttemv_attuttemv_1_111112111[color=#9f76cd]:
+     [ State_111112111( ~lock16, L_h, atts, k, m, v ) ]
+    --[ Pred_not_can_unwrap( z, z.1, z.2, z.3, z.4, z.5, z.6, z.7, z.8, z.9 )
+    ]->
+     [ State_1111121112( ~lock16, L_h, atts, k, m, v ) ]
+    variants (modulo AC)
+    1. v     = v.17
+       z     = attwrap(tem(v.17))
+       z.1   = attunwrap(tem(v.17))
+       z.2   = attenc(tem(v.17))
+       z.3   = attdec(tem(v.17))
+       z.4   = attsens(tem(v.17))
+       z.5   = attextr(tem(v.17))
+       z.6   = atttrus(tem(v.17))
+       z.7   = attwwt(tem(v.17))
+       z.8   = attwt(tem(v.17))
+       z.9   = attut(tem(v.17))
+    
+    2. v     = <x.17, x.18>
+       z     = attwrap(x.18)
+       z.1   = attunwrap(x.18)
+       z.2   = attenc(x.18)
+       z.3   = attdec(x.18)
+       z.4   = attsens(x.18)
+       z.5   = attextr(x.18)
+       z.6   = atttrus(x.18)
+       z.7   = attwwt(x.18)
+       z.8   = attwt(x.18)
+       z.9   = attut(x.18)
+    
+    3. v     = <x.17, x.18, x.19, x.20, x.21, x.22, x.23, x.24, x.25, x.26, 
+                x.27>
+       z     = x.18
+       z.1   = x.19
+       z.2   = x.20
+       z.3   = x.21
+       z.4   = x.22
+       z.5   = x.23
+       z.6   = x.24
+       z.7   = x.25
+       z.8   = x.26
+       z.9   = x.27
+  */
+
+rule (modulo E) if_eqkeyv_k_0_1111121111[color=#9f76cd]:
+   [ State_1111121111( ~lock16, L_h, atts, k, m, v ) ]
+  --[ Pred_eq( key(v), k ) ]->
+   [ State_11111211111( ~lock16, L_h, atts, k, m, v ) ]
+
+  /*
+  rule (modulo AC) if_eqkeyv_k_0_1111121111[color=#9f76cd]:
+     [ State_1111121111( ~lock16, L_h, atts, k, m, v ) ]
+    --[ Pred_eq( z, k ) ]->
+     [ State_11111211111( ~lock16, L_h, atts, k, m, v ) ]
+    variants (modulo AC)
+    1. v     = v.8
+       z     = key(v.8)
+    
+    2. v     = <x.8, x.9>
+       z     = x.8
+  */
+
+rule (modulo E) if_eqkeyv_k_1_1111121111[color=#9f76cd]:
+   [ State_1111121111( ~lock16, L_h, atts, k, m, v ) ]
+  --[ Pred_not_eq( key(v), k ) ]->
+   [ State_11111211112( ~lock16, L_h, atts, k, m, v ) ]
+
+  /*
+  rule (modulo AC) if_eqkeyv_k_1_1111121111[color=#9f76cd]:
+     [ State_1111121111( ~lock16, L_h, atts, k, m, v ) ]
+    --[ Pred_not_eq( z, k ) ]->
+     [ State_11111211112( ~lock16, L_h, atts, k, m, v ) ]
+    variants (modulo AC)
+    1. v     = v.8
+       z     = key(v.8)
+    
+    2. v     = <x.8, x.9>
+       z     = x.8
+  */
+
+rule (modulo E) lookup_F_template_attuttemv_as_ut_0_11111211111[color=#9f76cd]:
+   [ State_11111211111( ~lock16, L_h, atts, k, m, v ) ]
+  --[ IsIn( <'F_template', attut(tem(v))>, ut ) ]->
+   [ State_111112111111( ~lock16, L_h, atts, k, m, ut, v ) ]
+
+  /*
+  rule (modulo AC) lookup_F_template_attuttemv_as_ut_0_11111211111[color=#9f76cd]:
+     [ State_11111211111( ~lock16, L_h, atts, k, m, v ) ]
+    --[ IsIn( <'F_template', z>, ut ) ]->
+     [ State_111112111111( ~lock16, L_h, atts, k, m, ut, v ) ]
+    variants (modulo AC)
+    1. v     = v.11
+       z     = attut(tem(v.11))
+    
+    2. v     = <x.12, x.13>
+       z     = attut(x.13)
+    
+    3. v     = <x.22, x.23, x.24, x.25, x.26, x.27, x.28, x.29, x.30, x.31, 
+                z.21>
+       z     = z.21
+  */
+
+rule (modulo E) lookup_F_template_attuttemv_as_ut_1_11111211111[color=#9f76cd]:
+   [ State_11111211111( ~lock16, L_h, atts, k, m, v ) ]
+  --[ IsNotSet( <'F_template', attut(tem(v))> ) ]->
+   [ State_111112111112( ~lock16, L_h, atts, k, m, v ) ]
+
+  /*
+  rule (modulo AC) lookup_F_template_attuttemv_as_ut_1_11111211111[color=#9f76cd]:
+     [ State_11111211111( ~lock16, L_h, atts, k, m, v ) ]
+    --[ IsNotSet( <'F_template', z> ) ]->
+     [ State_111112111112( ~lock16, L_h, atts, k, m, v ) ]
+    variants (modulo AC)
+    1. v     = v.10
+       z     = attut(tem(v.10))
+    
+    2. v     = <x.11, x.12>
+       z     = attut(x.12)
+    
+    3. v     = <x.21, x.22, x.23, x.24, x.25, x.26, x.27, x.28, x.29, x.30, 
+                z.20>
+       z     = z.20
+  */
+
+rule (modulo E) if_permitsattwraput_attunwraput_attencut_attdecut_attsensut_attextrut_atttrusut_attwwtut_attwtut_attutut_attwrapatts_attunwrapatts_attencatts_attdecatts_attsensatts_attextratts_atttrusatts_attwwtatts_attwtatts_attutatts_0_111112111111[color=#9f76cd]:
+   [ State_111112111111( ~lock16, L_h, atts, k, m, ut, v ) ]
+  --[
+  Pred_permits( attwrap(ut), attunwrap(ut), attenc(ut), attdec(ut),
+                attsens(ut), attextr(ut), atttrus(ut), attwwt(ut), attwt(ut), attut(ut),
+                attwrap(atts), attunwrap(atts), attenc(atts), attdec(atts),
+                attsens(atts), attextr(atts), atttrus(atts), attwwt(atts), attwt(atts),
+                attut(atts)
+  )
+  ]->
+   [ State_1111121111111( ~lock16, L_h, atts, k, m, ut, v ) ]
+
+  /*
+  rule (modulo AC) if_permitsattwraput_attunwraput_attencut_attdecut_attsensut_attextrut_atttrusut_attwwtut_attwtut_attutut_attwrapatts_attunwrapatts_attencatts_attdecatts_attsensatts_attextratts_atttrusatts_attwwtatts_attwtatts_attutatts_0_111112111111[color=#9f76cd]:
+     [ State_111112111111( ~lock16, L_h, atts, k, m, ut, v ) ]
+    --[
+    Pred_permits( z, z.1, z.2, z.3, z.4, z.5, z.6, z.7, z.8, z.9, z.10, z.11,
+                  z.12, z.13, z.14, z.15, z.16, z.17, z.18, z.19
+    )
+    ]->
+     [ State_1111121111111( ~lock16, L_h, atts, k, m, ut, v ) ]
+    variants (modulo AC)
+    1. atts  = atts.28
+       ut    = ut.28
+       z     = attwrap(ut.28)
+       z.1   = attunwrap(ut.28)
+       z.2   = attenc(ut.28)
+       z.3   = attdec(ut.28)
+       z.4   = attsens(ut.28)
+       z.5   = attextr(ut.28)
+       z.6   = atttrus(ut.28)
+       z.7   = attwwt(ut.28)
+       z.8   = attwt(ut.28)
+       z.9   = attut(ut.28)
+       z.10  = attwrap(atts.28)
+       z.11  = attunwrap(atts.28)
+       z.12  = attenc(atts.28)
+       z.13  = attdec(atts.28)
+       z.14  = attsens(atts.28)
+       z.15  = attextr(atts.28)
+       z.16  = atttrus(atts.28)
+       z.17  = attwwt(atts.28)
+       z.18  = attwt(atts.28)
+       z.19  = attut(atts.28)
+    
+    2. atts  = atts.38
+       ut    = <x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36, x.37>
+       z     = x.28
+       z.1   = x.29
+       z.2   = x.30
+       z.3   = x.31
+       z.4   = x.32
+       z.5   = x.33
+       z.6   = x.34
+       z.7   = x.35
+       z.8   = x.36
+       z.9   = x.37
+       z.10  = attwrap(atts.38)
+       z.11  = attunwrap(atts.38)
+       z.12  = attenc(atts.38)
+       z.13  = attdec(atts.38)
+       z.14  = attsens(atts.38)
+       z.15  = attextr(atts.38)
+       z.16  = atttrus(atts.38)
+       z.17  = attwwt(atts.38)
+       z.18  = attwt(atts.38)
+       z.19  = attut(atts.38)
+    
+    3. atts  = <x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36, x.37>
+       ut    = ut.38
+       z     = attwrap(ut.38)
+       z.1   = attunwrap(ut.38)
+       z.2   = attenc(ut.38)
+       z.3   = attdec(ut.38)
+       z.4   = attsens(ut.38)
+       z.5   = attextr(ut.38)
+       z.6   = atttrus(ut.38)
+       z.7   = attwwt(ut.38)
+       z.8   = attwt(ut.38)
+       z.9   = attut(ut.38)
+       z.10  = x.28
+       z.11  = x.29
+       z.12  = x.30
+       z.13  = x.31
+       z.14  = x.32
+       z.15  = x.33
+       z.16  = x.34
+       z.17  = x.35
+       z.18  = x.36
+       z.19  = x.37
+    
+    4. atts  = <x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36, x.37>
+       ut    = <x.40, x.41, x.42, x.43, x.44, x.45, x.46, x.47, x.48, x.49>
+       z     = x.40
+       z.1   = x.41
+       z.2   = x.42
+       z.3   = x.43
+       z.4   = x.44
+       z.5   = x.45
+       z.6   = x.46
+       z.7   = x.47
+       z.8   = x.48
+       z.9   = x.49
+       z.10  = x.28
+       z.11  = x.29
+       z.12  = x.30
+       z.13  = x.31
+       z.14  = x.32
+       z.15  = x.33
+       z.16  = x.34
+       z.17  = x.35
+       z.18  = x.36
+       z.19  = x.37
+  */
+
+rule (modulo E) if_permitsattwraput_attunwraput_attencut_attdecut_attsensut_attextrut_atttrusut_attwwtut_attwtut_attutut_attwrapatts_attunwrapatts_attencatts_attdecatts_attsensatts_attextratts_atttrusatts_attwwtatts_attwtatts_attutatts_1_111112111111[color=#9f76cd]:
+   [ State_111112111111( ~lock16, L_h, atts, k, m, ut, v ) ]
+  --[
+  Pred_not_permits( attwrap(ut), attunwrap(ut), attenc(ut), attdec(ut),
+                    attsens(ut), attextr(ut), atttrus(ut), attwwt(ut), attwt(ut), attut(ut),
+                    attwrap(atts), attunwrap(atts), attenc(atts), attdec(atts),
+                    attsens(atts), attextr(atts), atttrus(atts), attwwt(atts), attwt(atts),
+                    attut(atts)
+  )
+  ]->
+   [ State_1111121111112( ~lock16, L_h, atts, k, m, ut, v ) ]
+
+  /*
+  rule (modulo AC) if_permitsattwraput_attunwraput_attencut_attdecut_attsensut_attextrut_atttrusut_attwwtut_attwtut_attutut_attwrapatts_attunwrapatts_attencatts_attdecatts_attsensatts_attextratts_atttrusatts_attwwtatts_attwtatts_attutatts_1_111112111111[color=#9f76cd]:
+     [ State_111112111111( ~lock16, L_h, atts, k, m, ut, v ) ]
+    --[
+    Pred_not_permits( z, z.1, z.2, z.3, z.4, z.5, z.6, z.7, z.8, z.9, z.10,
+                      z.11, z.12, z.13, z.14, z.15, z.16, z.17, z.18, z.19
+    )
+    ]->
+     [ State_1111121111112( ~lock16, L_h, atts, k, m, ut, v ) ]
+    variants (modulo AC)
+    1. atts  = atts.28
+       ut    = ut.28
+       z     = attwrap(ut.28)
+       z.1   = attunwrap(ut.28)
+       z.2   = attenc(ut.28)
+       z.3   = attdec(ut.28)
+       z.4   = attsens(ut.28)
+       z.5   = attextr(ut.28)
+       z.6   = atttrus(ut.28)
+       z.7   = attwwt(ut.28)
+       z.8   = attwt(ut.28)
+       z.9   = attut(ut.28)
+       z.10  = attwrap(atts.28)
+       z.11  = attunwrap(atts.28)
+       z.12  = attenc(atts.28)
+       z.13  = attdec(atts.28)
+       z.14  = attsens(atts.28)
+       z.15  = attextr(atts.28)
+       z.16  = atttrus(atts.28)
+       z.17  = attwwt(atts.28)
+       z.18  = attwt(atts.28)
+       z.19  = attut(atts.28)
+    
+    2. atts  = atts.38
+       ut    = <x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36, x.37>
+       z     = x.28
+       z.1   = x.29
+       z.2   = x.30
+       z.3   = x.31
+       z.4   = x.32
+       z.5   = x.33
+       z.6   = x.34
+       z.7   = x.35
+       z.8   = x.36
+       z.9   = x.37
+       z.10  = attwrap(atts.38)
+       z.11  = attunwrap(atts.38)
+       z.12  = attenc(atts.38)
+       z.13  = attdec(atts.38)
+       z.14  = attsens(atts.38)
+       z.15  = attextr(atts.38)
+       z.16  = atttrus(atts.38)
+       z.17  = attwwt(atts.38)
+       z.18  = attwt(atts.38)
+       z.19  = attut(atts.38)
+    
+    3. atts  = <x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36, x.37>
+       ut    = ut.38
+       z     = attwrap(ut.38)
+       z.1   = attunwrap(ut.38)
+       z.2   = attenc(ut.38)
+       z.3   = attdec(ut.38)
+       z.4   = attsens(ut.38)
+       z.5   = attextr(ut.38)
+       z.6   = atttrus(ut.38)
+       z.7   = attwwt(ut.38)
+       z.8   = attwt(ut.38)
+       z.9   = attut(ut.38)
+       z.10  = x.28
+       z.11  = x.29
+       z.12  = x.30
+       z.13  = x.31
+       z.14  = x.32
+       z.15  = x.33
+       z.16  = x.34
+       z.17  = x.35
+       z.18  = x.36
+       z.19  = x.37
+    
+    4. atts  = <x.28, x.29, x.30, x.31, x.32, x.33, x.34, x.35, x.36, x.37>
+       ut    = <x.40, x.41, x.42, x.43, x.44, x.45, x.46, x.47, x.48, x.49>
+       z     = x.40
+       z.1   = x.41
+       z.2   = x.42
+       z.3   = x.43
+       z.4   = x.44
+       z.5   = x.45
+       z.6   = x.46
+       z.7   = x.47
+       z.8   = x.48
+       z.9   = x.49
+       z.10  = x.28
+       z.11  = x.29
+       z.12  = x.30
+       z.13  = x.31
+       z.14  = x.32
+       z.15  = x.33
+       z.16  = x.34
+       z.17  = x.35
+       z.18  = x.36
+       z.19  = x.37
+  */
+
+rule (modulo E) new_h2_1111121111111[color=#9f76cd]:
+   [ State_1111121111111( ~lock16, L_h, atts, k, m, ut, v ), Fr( h2 ) ]
+  -->
+   [ State_11111211111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_obj_h2_m_atts__11111211111111[color=#9f76cd]:
+   [ State_11111211111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+  --[ Insert( <'obj', h2>, <m, atts> ) ]->
+   [ State_111112111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_Unwrappedh2_m_atts_111112111111111[color=#9f76cd]:
+   [ State_111112111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+  --[ Event( ), Unwrapped( h2, m, atts ) ]->
+   [ State_1111121111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_WrapKeyh2_m_attwrapatts_1111121111111111[color=#9f76cd]:
+   [ State_1111121111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+  --[ Event( ), WrapKey( h2, m, attwrap(atts) ) ]->
+   [ State_11111211111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+
+  /*
+  rule (modulo AC) event_WrapKeyh2_m_attwrapatts_1111121111111111[color=#9f76cd]:
+     [ State_1111121111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+    --[ Event( ), WrapKey( h2, m, z ) ]->
+     [ State_11111211111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+    variants (modulo AC)
+    1. atts  = atts.10
+       z     = attwrap(atts.10)
+    
+    2. atts  = <x.10, x.11, x.12, x.13, x.14, x.15, x.16, x.17, x.18, x.19>
+       z     = x.10
+  */
+
+rule (modulo E) event_DecKeyh2_m_attdecatts_11111211111111111[color=#9f76cd]:
+   [ State_11111211111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+  --[ Event( ), DecKey( h2, m, attdec(atts) ) ]->
+   [ State_111112111111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+
+  /*
+  rule (modulo AC) event_DecKeyh2_m_attdecatts_11111211111111111[color=#9f76cd]:
+     [ State_11111211111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+    --[ Event( ), DecKey( h2, m, z ) ]->
+     [ State_111112111111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+    variants (modulo AC)
+    1. atts  = atts.10
+       z     = attdec(atts.10)
+    
+    2. atts  = <x.10, x.11, x.12, x.13, x.14, x.15, x.16, x.17, x.18, x.19>
+       z     = x.13
+  */
+
+rule (modulo E) event_EncKeyh2_m_attencatts_111112111111111111[color=#9f76cd]:
+   [ State_111112111111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+  --[ Event( ), EncKey( h2, m, attenc(atts) ) ]->
+   [ State_1111121111111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+
+  /*
+  rule (modulo AC) event_EncKeyh2_m_attencatts_111112111111111111[color=#9f76cd]:
+     [ State_111112111111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+    --[ Event( ), EncKey( h2, m, z ) ]->
+     [ State_1111121111111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+    variants (modulo AC)
+    1. atts  = atts.10
+       z     = attenc(atts.10)
+    
+    2. atts  = <x.10, x.11, x.12, x.13, x.14, x.15, x.16, x.17, x.18, x.19>
+       z     = x.12
+  */
+
+rule (modulo E) event_UnwrapKeyh2_m_attunwrapatts_1111121111111111111[color=#9f76cd]:
+   [ State_1111121111111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+  --[ Event( ), UnwrapKey( h2, m, attunwrap(atts) ) ]->
+   [ State_11111211111111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+
+  /*
+  rule (modulo AC) event_UnwrapKeyh2_m_attunwrapatts_1111121111111111111[color=#9f76cd]:
+     [ State_1111121111111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+    --[ Event( ), UnwrapKey( h2, m, z ) ]->
+     [ State_11111211111111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+    variants (modulo AC)
+    1. atts  = atts.10
+       z     = attunwrap(atts.10)
+    
+    2. atts  = <x.10, x.11, x.12, x.13, x.14, x.15, x.16, x.17, x.18, x.19>
+       z     = x.11
+  */
+
+rule (modulo E) out_h2_11111211111111111111[color=#9f76cd]:
+   [ State_11111211111111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+  -->
+   [
+   State_111112111111111111111( ~lock16, L_h, atts, h2, k, m, ut, v ),
+   Out( h2 )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_device__111112111111111111111[color=#9f76cd]:
+   [ State_111112111111111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+  --[ Unlock( $16, ~lock16, 'device' ), Unlock_16( $16, ~lock16, 'device' )
+  ]->
+   [ State_1111121111111111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111121111111111111111[color=#9f76cd]:
+   [ State_1111121111111111111111( ~lock16, L_h, atts, h2, k, m, ut, v ) ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111121111112[color=#9f76cd]:
+   [ State_1111121111112( ~lock16, L_h, atts, k, m, ut, v ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111112111112[color=#9f76cd]:
+   [ State_111112111112( ~lock16, L_h, atts, k, m, v ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111211112[color=#9f76cd]:
+   [ State_11111211112( ~lock16, L_h, atts, k, m, v ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111121112[color=#9f76cd]:
+   [ State_1111121112( ~lock16, L_h, atts, k, m, v ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111112112[color=#9f76cd]:
+   [ State_111112112( ~lock16, L_h, atts, k, m ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_L_h_11112[color=#ee415c]:
+   [ State_11112( ), In( L_h ) ] --> [ State_111121( L_h ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_device__111121[color=#ee415c]:
+   [ State_111121( L_h ), Fr( ~lock7 ) ]
+  --[ Lock( $7, ~lock7, 'device' ), Lock_7( $7, ~lock7, 'device' ) ]->
+   [ State_1111211( ~lock7, L_h ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_obj_L_h_as_v_0_1111211[color=#ee415c]:
+   [ State_1111211( ~lock7, L_h ) ]
+  --[ IsIn( <'obj', L_h>, v ) ]->
+   [ State_11112111( ~lock7, L_h, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_obj_L_h_as_v_1_1111211[color=#ee415c]:
+   [ State_1111211( ~lock7, L_h ) ]
+  --[ IsNotSet( <'obj', L_h> ) ]->
+   [ State_11112112( ~lock7, L_h ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_can_get_keyvalueattwraptemv_attunwraptemv_attenctemv_attdectemv_attsenstemv_attextrtemv_atttrustemv_attwwttemv_attwttemv_attuttemv_0_11112111[color=#ee415c]:
+   [ State_11112111( ~lock7, L_h, v ) ]
+  --[
+  Pred_can_get_keyvalue( attwrap(tem(v)), attunwrap(tem(v)),
+                         attenc(tem(v)), attdec(tem(v)), attsens(tem(v)), attextr(tem(v)),
+                         atttrus(tem(v)), attwwt(tem(v)), attwt(tem(v)), attut(tem(v))
+  )
+  ]->
+   [ State_111121111( ~lock7, L_h, v ) ]
+
+  /*
+  rule (modulo AC) if_can_get_keyvalueattwraptemv_attunwraptemv_attenctemv_attdectemv_attsenstemv_attextrtemv_atttrustemv_attwwttemv_attwttemv_attuttemv_0_11112111[color=#ee415c]:
+     [ State_11112111( ~lock7, L_h, v ) ]
+    --[
+    Pred_can_get_keyvalue( z, z.1, z.2, z.3, z.4, z.5, z.6, z.7, z.8, z.9 )
+    ]->
+     [ State_111121111( ~lock7, L_h, v ) ]
+    variants (modulo AC)
+    1. v     = v.14
+       z     = attwrap(tem(v.14))
+       z.1   = attunwrap(tem(v.14))
+       z.2   = attenc(tem(v.14))
+       z.3   = attdec(tem(v.14))
+       z.4   = attsens(tem(v.14))
+       z.5   = attextr(tem(v.14))
+       z.6   = atttrus(tem(v.14))
+       z.7   = attwwt(tem(v.14))
+       z.8   = attwt(tem(v.14))
+       z.9   = attut(tem(v.14))
+    
+    2. v     = <x.14, x.15>
+       z     = attwrap(x.15)
+       z.1   = attunwrap(x.15)
+       z.2   = attenc(x.15)
+       z.3   = attdec(x.15)
+       z.4   = attsens(x.15)
+       z.5   = attextr(x.15)
+       z.6   = atttrus(x.15)
+       z.7   = attwwt(x.15)
+       z.8   = attwt(x.15)
+       z.9   = attut(x.15)
+    
+    3. v     = <x.14, x.15, x.16, x.17, x.18, x.19, x.20, x.21, x.22, x.23, 
+                x.24>
+       z     = x.15
+       z.1   = x.16
+       z.2   = x.17
+       z.3   = x.18
+       z.4   = x.19
+       z.5   = x.20
+       z.6   = x.21
+       z.7   = x.22
+       z.8   = x.23
+       z.9   = x.24
+  */
+
+rule (modulo E) if_can_get_keyvalueattwraptemv_attunwraptemv_attenctemv_attdectemv_attsenstemv_attextrtemv_atttrustemv_attwwttemv_attwttemv_attuttemv_1_11112111[color=#ee415c]:
+   [ State_11112111( ~lock7, L_h, v ) ]
+  --[
+  Pred_not_can_get_keyvalue( attwrap(tem(v)), attunwrap(tem(v)),
+                             attenc(tem(v)), attdec(tem(v)), attsens(tem(v)), attextr(tem(v)),
+                             atttrus(tem(v)), attwwt(tem(v)), attwt(tem(v)), attut(tem(v))
+  )
+  ]->
+   [ State_111121112( ~lock7, L_h, v ) ]
+
+  /*
+  rule (modulo AC) if_can_get_keyvalueattwraptemv_attunwraptemv_attenctemv_attdectemv_attsenstemv_attextrtemv_atttrustemv_attwwttemv_attwttemv_attuttemv_1_11112111[color=#ee415c]:
+     [ State_11112111( ~lock7, L_h, v ) ]
+    --[
+    Pred_not_can_get_keyvalue( z, z.1, z.2, z.3, z.4, z.5, z.6, z.7, z.8, z.9
+    )
+    ]->
+     [ State_111121112( ~lock7, L_h, v ) ]
+    variants (modulo AC)
+    1. v     = v.14
+       z     = attwrap(tem(v.14))
+       z.1   = attunwrap(tem(v.14))
+       z.2   = attenc(tem(v.14))
+       z.3   = attdec(tem(v.14))
+       z.4   = attsens(tem(v.14))
+       z.5   = attextr(tem(v.14))
+       z.6   = atttrus(tem(v.14))
+       z.7   = attwwt(tem(v.14))
+       z.8   = attwt(tem(v.14))
+       z.9   = attut(tem(v.14))
+    
+    2. v     = <x.14, x.15>
+       z     = attwrap(x.15)
+       z.1   = attunwrap(x.15)
+       z.2   = attenc(x.15)
+       z.3   = attdec(x.15)
+       z.4   = attsens(x.15)
+       z.5   = attextr(x.15)
+       z.6   = atttrus(x.15)
+       z.7   = attwwt(x.15)
+       z.8   = attwt(x.15)
+       z.9   = attut(x.15)
+    
+    3. v     = <x.14, x.15, x.16, x.17, x.18, x.19, x.20, x.21, x.22, x.23, 
+                x.24>
+       z     = x.15
+       z.1   = x.16
+       z.2   = x.17
+       z.3   = x.18
+       z.4   = x.19
+       z.5   = x.20
+       z.6   = x.21
+       z.7   = x.22
+       z.8   = x.23
+       z.9   = x.24
+  */
+
+rule (modulo E) event_GetKeyValuekeyv_111121111[color=#ee415c]:
+   [ State_111121111( ~lock7, L_h, v ) ]
+  --[ Event( ), GetKeyValue( key(v) ) ]->
+   [ State_1111211111( ~lock7, L_h, v ) ]
+
+  /*
+  rule (modulo AC) event_GetKeyValuekeyv_111121111[color=#ee415c]:
+     [ State_111121111( ~lock7, L_h, v ) ]
+    --[ Event( ), GetKeyValue( z ) ]->
+     [ State_1111211111( ~lock7, L_h, v ) ]
+    variants (modulo AC)
+    1. v     = v.5
+       z     = key(v.5)
+    
+    2. v     = <x.5, x.6>
+       z     = x.5
+  */
+
+rule (modulo E) out_keyv_1111211111[color=#ee415c]:
+   [ State_1111211111( ~lock7, L_h, v ) ]
+  -->
+   [ State_11112111111( ~lock7, L_h, v ), Out( key(v) ) ]
+
+  /*
+  rule (modulo AC) out_keyv_1111211111[color=#ee415c]:
+     [ State_1111211111( ~lock7, L_h, v ) ]
+    -->
+     [ State_11112111111( ~lock7, L_h, v ), Out( z ) ]
+    variants (modulo AC)
+    1. v     = v.5
+       z     = key(v.5)
+    
+    2. v     = <x.5, x.6>
+       z     = x.5
+  */
+
+rule (modulo E) unlock_device__11112111111[color=#ee415c]:
+   [ State_11112111111( ~lock7, L_h, v ) ]
+  --[ Unlock( $7, ~lock7, 'device' ), Unlock_7( $7, ~lock7, 'device' ) ]->
+   [ State_111121111111( ~lock7, L_h, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111121111111[color=#ee415c]:
+   [ State_111121111111( ~lock7, L_h, v ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111121112[color=#ee415c]:
+   [ State_111121112( ~lock7, L_h, v ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11112112[color=#ee415c]:
+   [ State_11112112( ~lock7, L_h ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+restriction set_in:
+  "∀ x y #t3.
+    (IsIn( x, y ) @ #t3) ⇒
+    (∃ #t2.
+      (((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ∧
+       (∀ #t1. (Delete( x ) @ #t1) ⇒ ((#t1 < #t2) ∨ (#t3 < #t1)))) ∧
+      (∀ #t1 yp.
+        (Insert( x, yp ) @ #t1) ⇒ (((#t1 < #t2) ∨ (#t1 = #t2)) ∨ (#t3 < #t1))))"
+
+restriction set_notin:
+  "∀ x #t3.
+    (IsNotSet( x ) @ #t3) ⇒
+    ((∀ #t1 y. (Insert( x, y ) @ #t1) ⇒ (#t3 < #t1)) ∨
+     (∃ #t1.
+       ((Delete( x ) @ #t1) ∧ (#t1 < #t3)) ∧
+       (∀ #t2 y. ((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ⇒ (#t2 < #t1))))"
+
+restriction predicate_eq:
+  "∀ #i a b. (Pred_eq( a, b ) @ #i) ⇒ (a = b)"
+  // safety formula
+
+restriction predicate_not_eq:
+  "∀ #i a b. (Pred_not_eq( a, b ) @ #i) ⇒ (¬(a = b))"
+  // safety formula
+
+restriction single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+restriction locking_14:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_14( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_14( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+restriction locking_8:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_8( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_8( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+restriction locking_7:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_7( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_7( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+restriction locking_10:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_10( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_10( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+restriction locking_16:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_16( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_16( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+restriction predicate11:
+  "∀ #i wrap unwrap enc dec sens extr trus wwt wt ut.
+    (Pred_not_can_encrypt( wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt,
+                           ut
+     ) @ #i) ⇒
+    (¬(enc = 'on'))"
+  // safety formula
+
+restriction predicate10:
+  "∀ #i wrap unwrap enc dec sens extr trus wwt wt ut.
+    (Pred_can_encrypt( wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, ut
+     ) @ #i) ⇒
+    (enc = 'on')"
+  // safety formula
+
+restriction predicate9:
+  "∀ #i wrap unwrap enc dec sens extr trus wwt wt ut.
+    (Pred_not_can_decrypt( wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt,
+                           ut
+     ) @ #i) ⇒
+    (¬(dec = 'on'))"
+  // safety formula
+
+restriction predicate8:
+  "∀ #i wrap unwrap enc dec sens extr trus wwt wt ut.
+    (Pred_can_decrypt( wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, ut
+     ) @ #i) ⇒
+    (dec = 'on')"
+  // safety formula
+
+restriction predicate7:
+  "∀ #i wrap1 unwrap1 enc1 dec1 sens1 extr1 trus1 wwt1 wt1 ut1 wrap2
+     unwrap2 enc2 dec2 sens2 extr2 trus2 wwt2 wt2 ut2.
+    (Pred_not_can_wrap( wrap1, unwrap1, enc1, dec1, sens1, extr1, trus1,
+                        wwt1, wt1, ut1, wrap2, unwrap2, enc2, dec2, sens2, extr2, trus2, wwt2,
+                        wt2, ut2
+     ) @ #i) ⇒
+    (¬(((wrap1 = 'on') ∧ (extr2 = 'on')) ∧
+       ((wwt2 = 'off') ∨ ((wwt2 = 'on') ∧ (trus1 = 'on')))))"
+  // safety formula
+
+restriction predicate6:
+  "∀ #i wrap1 unwrap1 enc1 dec1 sens1 extr1 trus1 wwt1 wt1 ut1 wrap2
+     unwrap2 enc2 dec2 sens2 extr2 trus2 wwt2 wt2 ut2.
+    (Pred_can_wrap( wrap1, unwrap1, enc1, dec1, sens1, extr1, trus1, wwt1,
+                    wt1, ut1, wrap2, unwrap2, enc2, dec2, sens2, extr2, trus2, wwt2, wt2, ut2
+     ) @ #i) ⇒
+    (((wrap1 = 'on') ∧ (extr2 = 'on')) ∧
+     ((wwt2 = 'off') ∨ ((wwt2 = 'on') ∧ (trus1 = 'on'))))"
+  // safety formula
+
+restriction predicate5:
+  "∀ #i wrap unwrap enc dec sens extr trus wwt wt ut.
+    (Pred_not_can_unwrap( wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt,
+                          ut
+     ) @ #i) ⇒
+    (¬(unwrap = 'on'))"
+  // safety formula
+
+restriction predicate4:
+  "∀ #i wrap unwrap enc dec sens extr trus wwt wt ut.
+    (Pred_can_unwrap( wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, ut
+     ) @ #i) ⇒
+    (unwrap = 'on')"
+  // safety formula
+
+restriction predicate3:
+  "∀ #i wrap unwrap enc dec sens extr trus wwt wt ut.
+    (Pred_not_can_get_keyvalue( wrap, unwrap, enc, dec, sens, extr, trus,
+                                wwt, wt, ut
+     ) @ #i) ⇒
+    (¬(sens = 'off'))"
+  // safety formula
+
+restriction predicate2:
+  "∀ #i wrap unwrap enc dec sens extr trus wwt wt ut.
+    (Pred_can_get_keyvalue( wrap, unwrap, enc, dec, sens, extr, trus, wwt,
+                            wt, ut
+     ) @ #i) ⇒
+    (sens = 'off')"
+  // safety formula
+
+restriction predicate1:
+  "∀ #i t_wrap t_unwrap t_enc t_dec t_sens t_extr t_trus t_wwt t_wt t_ut
+     wrap unwrap enc dec sens extr trus wwt wt ut.
+    (Pred_not_permits( t_wrap, t_unwrap, t_enc, t_dec, t_sens, t_extr,
+                       t_trus, t_wwt, t_wt, t_ut, wrap, unwrap, enc, dec, sens, extr, trus, wwt,
+                       wt, ut
+     ) @ #i) ⇒
+    (¬((t_wrap = wrap) ∧
+       ((t_unwrap = unwrap) ∧
+        ((t_enc = enc) ∧
+         ((t_dec = dec) ∧
+          ((t_sens = sens) ∧
+           ((t_extr = extr) ∧
+            ((t_trus = trus) ∧ ((t_wwt = wwt) ∧ ((t_wt = wt) ∧ (t_ut = ut)))))))))))"
+  // safety formula
+
+restriction predicate0:
+  "∀ #i t_wrap t_unwrap t_enc t_dec t_sens t_extr t_trus t_wwt t_wt t_ut
+     wrap unwrap enc dec sens extr trus wwt wt ut.
+    (Pred_permits( t_wrap, t_unwrap, t_enc, t_dec, t_sens, t_extr, t_trus,
+                   t_wwt, t_wt, t_ut, wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, ut
+     ) @ #i) ⇒
+    ((t_wrap = wrap) ∧
+     ((t_unwrap = unwrap) ∧
+      ((t_enc = enc) ∧
+       ((t_dec = dec) ∧
+        ((t_sens = sens) ∧
+         ((t_extr = extr) ∧
+          ((t_trus = trus) ∧ ((t_wwt = wwt) ∧ ((t_wt = wt) ∧ (t_ut = ut))))))))))"
+  // safety formula
+
+lemma dec_limits [sources]:
+  all-traces
+  "(((((∀ k m #t1.
+         (DecUsing( k, m ) @ #t1) ⇒
+         (((((∃ h2 k2 #t2 #t3.
+               (((NewKey( h2, k2, 'on' ) @ #t2) ∧ (!KU( k2 ) @ #t3)) ∧ (#t2 < #t1)) ∧
+               (#t3 < #t1)) ∨
+             (∃ h2 #t2 #t3 #t4.
+               (((((NewKey( h2, k, 'off' ) @ #t2) ∧ (!KU( k ) @ #t3)) ∧
+                  (!KU( m ) @ #t4)) ∧
+                 (#t2 < #t1)) ∧
+                (#t3 < #t1)) ∧
+               (#t4 < #t1))) ∨
+            (∃ #t2. (EncUsing( k, m ) @ #t2) ∧ (#t2 < #t1))) ∨
+           (∃ h2 k2 #t2 #t3 a.
+             (((Unwrapped( h2, k2, a ) @ #t2) ∧ (!KU( k2 ) @ #t3)) ∧ (#t2 < #t1)) ∧
+             (#t3 < #t1))) ∨
+          (∃ #t2 #t3 h1 h2 k2.
+            (((WrapKey( h2, k2, 'on' ) @ #t2) ∧ (DecKey( h1, k2, 'on' ) @ #t3)) ∧
+             (#t2 < #t1)) ∧
+            (#t3 < #t1)))) ∧
+       (∀ k #t2.
+         (GetKeyValue( k ) @ #t2) ⇒ (∃ L_h #t1. NewKey( L_h, k, 'off' ) @ #t1))) ∧
+      (¬(∃ L_h k wrap unwrap enc dec sens extr trus wwt wt #t.
+          Insert( <'obj', L_h>,
+                  <k, wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, 'trusted'>
+          ) @ #t))) ∧
+     (¬(∃ L_h k wrap unwrap enc dec sens extr trus wwt wt #t.
+         Insert( <'obj', L_h>,
+                 <k, wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, 'untrusted'>
+         ) @ #t))) ∧
+    (¬(∃ L_h k wrap unwrap enc dec sens extr trus wwt ut #t.
+        Insert( <'obj', L_h>,
+                <k, wrap, unwrap, enc, dec, sens, extr, trus, wwt, 'trusted', ut>
+        ) @ #t))) ∧
+   (¬(∃ L_h k wrap unwrap enc dec sens extr trus wwt ut #t.
+       Insert( <'obj', L_h>,
+               <k, wrap, unwrap, enc, dec, sens, extr, trus, wwt, 'untrusted', ut>
+       ) @ #t))"
+/*
+guarded formula characterizing all counter-examples:
+"((∃ k m #t1.
+    (DecUsing( k, m ) @ #t1)
+   ∧
+    (∀ h2 k2 #t2 #t3.
+      (NewKey( h2, k2, 'on' ) @ #t2) ∧ (!KU( k2 ) @ #t3)
+     ⇒
+      ((¬(#t2 < #t1)) ∨ (¬(#t3 < #t1)))) ∧
+    (∀ h2 #t2 #t3 #t4.
+      (NewKey( h2, k, 'off' ) @ #t2) ∧ (!KU( k ) @ #t3) ∧ (!KU( m ) @ #t4)
+     ⇒
+      ((¬(#t2 < #t1)) ∨ (¬(#t3 < #t1)) ∨ (¬(#t4 < #t1)))) ∧
+    (∀ #t2. (EncUsing( k, m ) @ #t2) ⇒ ¬(#t2 < #t1)) ∧
+    (∀ h2 k2 #t2 #t3 a.
+      (Unwrapped( h2, k2, a ) @ #t2) ∧ (!KU( k2 ) @ #t3)
+     ⇒
+      ((¬(#t2 < #t1)) ∨ (¬(#t3 < #t1)))) ∧
+    (∀ #t2 #t3 h1 h2 k2.
+      (WrapKey( h2, k2, 'on' ) @ #t2) ∧ (DecKey( h1, k2, 'on' ) @ #t3)
+     ⇒
+      ((¬(#t2 < #t1)) ∨ (¬(#t3 < #t1))))) ∨
+  (∃ k #t2.
+    (GetKeyValue( k ) @ #t2)
+   ∧
+    ∀ L_h #t1. (NewKey( L_h, k, 'off' ) @ #t1) ⇒ ⊥) ∨
+  (∃ L_h k wrap unwrap enc dec sens extr trus wwt wt #t.
+    (Insert( <'obj', L_h>,
+             <k, wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, 'trusted'>
+     ) @ #t)) ∨
+  (∃ L_h k wrap unwrap enc dec sens extr trus wwt wt #t.
+    (Insert( <'obj', L_h>,
+             <k, wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, 'untrusted'>
+     ) @ #t)) ∨
+  (∃ L_h k wrap unwrap enc dec sens extr trus wwt ut #t.
+    (Insert( <'obj', L_h>,
+             <k, wrap, unwrap, enc, dec, sens, extr, trus, wwt, 'trusted', ut>
+     ) @ #t)) ∨
+  (∃ L_h k wrap unwrap enc dec sens extr trus wwt ut #t.
+    (Insert( <'obj', L_h>,
+             <k, wrap, unwrap, enc, dec, sens, extr, trus, wwt, 'untrusted', ut>
+     ) @ #t)))"
+*/
+by sorry
+
+lemma trusted_as_ut_impossible [reuse]:
+  all-traces
+  "¬(∃ L_h k wrap unwrap enc dec sens extr trus wwt wt #t.
+      Insert( <'obj', L_h>,
+              <k, wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, 'trusted'>
+      ) @ #t)"
+/*
+guarded formula characterizing all counter-examples:
+"∃ L_h k wrap unwrap enc dec sens extr trus wwt wt #t.
+  (Insert( <'obj', L_h>,
+           <k, wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, 'trusted'>
+   ) @ #t)"
+*/
+by sorry
+
+lemma untrusted_as_ut_impossible [reuse]:
+  all-traces
+  "¬(∃ L_h k wrap unwrap enc dec sens extr trus wwt wt #t.
+      Insert( <'obj', L_h>,
+              <k, wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, 'untrusted'>
+      ) @ #t)"
+/*
+guarded formula characterizing all counter-examples:
+"∃ L_h k wrap unwrap enc dec sens extr trus wwt wt #t.
+  (Insert( <'obj', L_h>,
+           <k, wrap, unwrap, enc, dec, sens, extr, trus, wwt, wt, 'untrusted'>
+   ) @ #t)"
+*/
+by sorry
+
+lemma untrusted_as_wt_impossible [reuse]:
+  all-traces
+  "¬(∃ L_h k wrap unwrap enc dec sens extr trus wwt ut #t.
+      Insert( <'obj', L_h>,
+              <k, wrap, unwrap, enc, dec, sens, extr, trus, wwt, 'untrusted', ut>
+      ) @ #t)"
+/*
+guarded formula characterizing all counter-examples:
+"∃ L_h k wrap unwrap enc dec sens extr trus wwt ut #t.
+  (Insert( <'obj', L_h>,
+           <k, wrap, unwrap, enc, dec, sens, extr, trus, wwt, 'untrusted', ut>
+   ) @ #t)"
+*/
+by sorry
+
+lemma trusted_as_wt_impossible [reuse]:
+  all-traces
+  "¬(∃ L_h k wrap unwrap enc dec sens extr trus wwt ut #t.
+      Insert( <'obj', L_h>,
+              <k, wrap, unwrap, enc, dec, sens, extr, trus, wwt, 'trusted', ut>
+      ) @ #t)"
+/*
+guarded formula characterizing all counter-examples:
+"∃ L_h k wrap unwrap enc dec sens extr trus wwt ut #t.
+  (Insert( <'obj', L_h>,
+           <k, wrap, unwrap, enc, dec, sens, extr, trus, wwt, 'trusted', ut>
+   ) @ #t)"
+*/
+by sorry
+
+lemma bad_keys [reuse, use_induction]:
+  all-traces
+  "∀ h2 k #t2 a.
+    (Unwrapped( h2, k, a ) @ #t2) ⇒
+    ((((∃ h1 #t1. (NewKey( h1, k, 'on' ) @ #t1) ∧ (#t1 < #t2)) ∨
+       (∃ L_h k2 #t1 #t0.
+         (((NewKey( L_h, k2, 'on' ) @ #t0) ∧ (!KU( k2 ) @ #t1)) ∧ (#t1 < #t2)) ∧
+         (#t0 < #t2))) ∨
+      (∃ #t0 #t1 h1 h2.1 k.1.
+        (((WrapKey( h2.1, k.1, 'on' ) @ #t0) ∧ (DecKey( h1, k.1, 'on' ) @ #t1)) ∧
+         (#t0 < #t2)) ∧
+        (#t1 < #t2))) ∨
+     (∃ #t0 #t1 h1 h2.1 k.1.
+       (((UnwrapKey( h2.1, k.1, 'on' ) @ #t0) ∧
+         (EncKey( h1, k.1, 'on' ) @ #t1)) ∧
+        (#t0 < #t2)) ∧
+       (#t1 < #t2)))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ h2 k #t2 a.
+  (Unwrapped( h2, k, a ) @ #t2)
+ ∧
+  (∀ h1 #t1. (NewKey( h1, k, 'on' ) @ #t1) ⇒ ¬(#t1 < #t2)) ∧
+  (∀ L_h k2 #t1 #t0.
+    (NewKey( L_h, k2, 'on' ) @ #t0) ∧ (!KU( k2 ) @ #t1)
+   ⇒
+    ((¬(#t1 < #t2)) ∨ (¬(#t0 < #t2)))) ∧
+  (∀ #t0 #t1 h1 h2.1 k.1.
+    (WrapKey( h2.1, k.1, 'on' ) @ #t0) ∧ (DecKey( h1, k.1, 'on' ) @ #t1)
+   ⇒
+    ((¬(#t0 < #t2)) ∨ (¬(#t1 < #t2)))) ∧
+  (∀ #t0 #t1 h1 h2.1 k.1.
+    (UnwrapKey( h2.1, k.1, 'on' ) @ #t0) ∧ (EncKey( h1, k.1, 'on' ) @ #t1)
+   ⇒
+    ((¬(#t0 < #t2)) ∨ (¬(#t1 < #t2))))"
+*/
+by sorry
+
+lemma no_key_is_wrap_and_dec_or_unwrap_and_dec_ind [use_induction,
+                                                     reuse]:
+  all-traces
+  "∀ #t2 #t3 h1 h2 k.
+    ((DecKey( h1, k, 'on' ) @ #t2) ∧ (WrapKey( h2, k, 'on' ) @ #t3)) ⇒
+    ((∃ L_h k2 #t1 #t0.
+       ((NewKey( L_h, k2, 'on' ) @ #t0) ∧ (!KU( k2 ) @ #t1)) ∧
+       (((#t1 < #t3) ∧ (#t0 < #t3)) ∨ ((#t1 < #t2) ∧ (#t0 < #t2)))) ∨
+     (∃ #t0 #t1 h1.1 h2.1 k.1.
+       ((UnwrapKey( h2.1, k.1, 'on' ) @ #t0) ∧
+        (EncKey( h1.1, k.1, 'on' ) @ #t1)) ∧
+       (((#t0 < #t2) ∧ (#t1 < #t2)) ∨ ((#t0 < #t3) ∧ (#t1 < #t3)))))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ #t2 #t3 h1 h2 k.
+  (DecKey( h1, k, 'on' ) @ #t2) ∧ (WrapKey( h2, k, 'on' ) @ #t3)
+ ∧
+  (∀ L_h k2 #t1 #t0.
+    (NewKey( L_h, k2, 'on' ) @ #t0) ∧ (!KU( k2 ) @ #t1)
+   ⇒
+    (((¬(#t1 < #t3)) ∨ (¬(#t0 < #t3)))) ∧
+    (((¬(#t1 < #t2)) ∨ (¬(#t0 < #t2))))) ∧
+  (∀ #t0 #t1 h1.1 h2.1 k.1.
+    (UnwrapKey( h2.1, k.1, 'on' ) @ #t0) ∧ (EncKey( h1.1, k.1, 'on' ) @ #t1)
+   ⇒
+    (((¬(#t0 < #t2)) ∨ (¬(#t1 < #t2)))) ∧
+    (((¬(#t0 < #t3)) ∨ (¬(#t1 < #t3)))))"
+*/
+by sorry
+
+lemma no_key_is_enc_and_unwrap [use_induction, reuse]:
+  all-traces
+  "∀ #t2 #t3 h1 h2 k.
+    ((EncKey( h1, k, 'on' ) @ #t2) ∧ (UnwrapKey( h2, k, 'on' ) @ #t3)) ⇒
+    (∃ L_h k2 #t1 #t0.
+      ((NewKey( L_h, k2, 'on' ) @ #t0) ∧ (!KU( k2 ) @ #t1)) ∧
+      (((#t1 < #t3) ∧ (#t0 < #t3)) ∨ ((#t1 < #t2) ∧ (#t0 < #t2))))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ #t2 #t3 h1 h2 k.
+  (EncKey( h1, k, 'on' ) @ #t2) ∧ (UnwrapKey( h2, k, 'on' ) @ #t3)
+ ∧
+  ∀ L_h k2 #t1 #t0.
+   (NewKey( L_h, k2, 'on' ) @ #t0) ∧ (!KU( k2 ) @ #t1)
+  ⇒
+   (((¬(#t1 < #t3)) ∨ (¬(#t0 < #t3)))) ∧
+   (((¬(#t1 < #t2)) ∨ (¬(#t0 < #t2))))"
+*/
+by sorry
+
+lemma cannot_obtain_key_ind [reuse, use_induction]:
+  all-traces
+  "¬(∃ #i #j L_h k. (NewKey( L_h, k, 'on' ) @ #i) ∧ (!KU( k ) @ #j))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ #i #j L_h k. (NewKey( L_h, k, 'on' ) @ #i) ∧ (!KU( k ) @ #j)"
+*/
+by sorry
+
+lemma cannot_obtain_key:
+  all-traces
+  "¬(∃ #i #j L_h k. (NewKey( L_h, k, 'on' ) @ #i) ∧ (K( k ) @ #j))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ #i #j L_h k. (NewKey( L_h, k, 'on' ) @ #i) ∧ (K( k ) @ #j)"
+*/
+by sorry
+
+/*
+WARNING: the following wellformedness checks failed!
+
+unbound:
+  rule `lookup_F_template_ptr_as_templ_0_1111111111111' has unbound variables: 
+    templ
+  
+  rule `lookup_obj_L_h_as_v_0_11111111211' has unbound variables: 
+    v
+  
+  rule `lookup_obj_L_h_as_v_0_1111111211' has unbound variables: 
+    v
+  
+  rule `lookup_obj_h1_as_v1_0_111111211' has unbound variables: 
+    v1
+  
+  rule `lookup_obj_h2_as_v2_0_1111112111' has unbound variables: 
+    v2
+  
+  rule `lookup_F_template_attwttemv1_as_wt_0_111111211111' has unbound variables: 
+    wt
+  
+  rule `lookup_obj_L_h_as_v_0_11111211' has unbound variables: 
+    v
+  
+  rule `lookup_F_template_attuttemv_as_ut_0_11111211111' has unbound variables: 
+    ut
+  
+  rule `lookup_obj_L_h_as_v_0_1111211' has unbound variables: 
+    v
+
+Restriction actions:
+  restriction `set_in' references action 
+    (ProtoFact Linear "Delete" 1,1,Linear)
+  but no rule has such an action.
+  
+  restriction `set_notin' references action 
+    (ProtoFact Linear "Delete" 1,1,Linear)
+  but no rule has such an action.
+*/
+
+end

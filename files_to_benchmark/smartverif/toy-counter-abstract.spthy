@@ -1,0 +1,381 @@
+theory ToyCounter begin
+
+// Function signature and definition of the equational theory E
+
+builtins: multiset
+functions: check_rep/2, fst/1, get_rep/1, h/2, pair/2, rep/2 [private],
+           sdec/2, senc/2, snd/1
+equations:
+    check_rep(rep(m, loc), loc) = m,
+    fst(<x.1, x.2>) = x.1,
+    get_rep(rep(m, loc)) = m,
+    sdec(senc(x.1, x.2), x.2) = x.1,
+    snd(<x.1, x.2>) = x.2
+
+
+rule (modulo E) Init_:
+   [ ] --[ Init( ) ]-> [ State_( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_:
+   [ State_( ) ] --> [ !Semistate_1( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_:
+   [ !Semistate_1( ) ] --> [ State_1( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_k_1:
+   [ State_1( ), Fr( k ) ] --> [ State_11( k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_Secretk_11:
+   [ State_11( k ) ] --[ Event( ), Secret( k ) ]-> [ State_111( k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_counter_id_111:
+   [ State_111( k ), Fr( counter_id ) ] --> [ State_1111( counter_id, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_1111:
+   [ State_1111( counter_id, k ) ]
+  -->
+   [ State_11111( counter_id, k ), State_11112( counter_id, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_11111:
+   [ State_11111( counter_id, k ) ]
+  -->
+   [ State_111111( counter_id, k ), State_111112( counter_id, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_111111:
+   [ State_111111( counter_id, k ) ]
+  -->
+   [ !Semistate_1111111( counter_id, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_111111:
+   [ !Semistate_1111111( counter_id, k ) ]
+  -->
+   [ State_1111111( counter_id, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_counter_id_1111111[color=#569dc0]:
+   [ State_1111111( counter_id, k ), Fr( ~lock8 ) ]
+  --[ Lock( $8, ~lock8, counter_id ), Lock_8( $8, ~lock8, counter_id ) ]->
+   [ State_11111111( ~lock8, counter_id, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_counter_id_as_i_0_11111111[color=#569dc0]:
+   [ State_11111111( ~lock8, counter_id, k ) ]
+  --[ IsIn( counter_id, i ) ]->
+   [ State_111111111( ~lock8, counter_id, i, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_counter_id_as_i_1_11111111[color=#569dc0]:
+   [ State_11111111( ~lock8, counter_id, k ) ]
+  --[ IsNotSet( counter_id ) ]->
+   [ State_111111112( ~lock8, counter_id, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_hi_k_111111111[color=#569dc0]:
+   [ State_111111111( ~lock8, counter_id, i, k ) ]
+  -->
+   [ State_1111111111( ~lock8, counter_id, i, k ), Out( h(i, k) ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_i2_1111111111[color=#569dc0]:
+   [ State_1111111111( ~lock8, counter_id, i, k ), Fr( i2 ) ]
+  -->
+   [ State_11111111111( ~lock8, counter_id, i, i2, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_counter_id_i2_11111111111[color=#569dc0]:
+   [ State_11111111111( ~lock8, counter_id, i, i2, k ) ]
+  --[ Insert( counter_id, i2 ) ]->
+   [ State_111111111111( ~lock8, counter_id, i, i2, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_counter_id_111111111111[color=#569dc0]:
+   [ State_111111111111( ~lock8, counter_id, i, i2, k ) ]
+  --[ Unlock( $8, ~lock8, counter_id ), Unlock_8( $8, ~lock8, counter_id )
+  ]->
+   [ State_1111111111111( ~lock8, counter_id, i, i2, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_i2_1111111111111[color=#569dc0]:
+   [ State_1111111111111( ~lock8, counter_id, i, i2, k ) ]
+  -->
+   [ State_11111111111111( ~lock8, counter_id, i, i2, k ), Out( i2 ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111111111111[color=#569dc0]:
+   [ State_11111111111111( ~lock8, counter_id, i, i2, k ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111112[color=#569dc0]:
+   [ State_111111112( ~lock8, counter_id, k ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_111112:
+   [ State_111112( counter_id, k ) ]
+  -->
+   [ !Semistate_1111121( counter_id, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_111112:
+   [ !Semistate_1111121( counter_id, k ) ]
+  -->
+   [ State_1111121( counter_id, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_counter_id_1111121[color=#2cd719]:
+   [ State_1111121( counter_id, k ), Fr( ~lock10 ) ]
+  --[ Lock( $10, ~lock10, counter_id ), Lock_10( $10, ~lock10, counter_id )
+  ]->
+   [ State_11111211( ~lock10, counter_id, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_counter_id_as_i_0_11111211[color=#2cd719]:
+   [ State_11111211( ~lock10, counter_id, k ) ]
+  --[ IsIn( counter_id, i ) ]->
+   [ State_111112111( ~lock10, counter_id, i, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_counter_id_as_i_1_11111211[color=#2cd719]:
+   [ State_11111211( ~lock10, counter_id, k ) ]
+  --[ IsNotSet( counter_id ) ]->
+   [ State_111112112( ~lock10, counter_id, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_y_111112111[color=#2cd719]:
+   [ State_111112111( ~lock10, counter_id, i, k ), In( y ) ]
+  -->
+   [ State_1111121111( ~lock10, counter_id, i, k, y ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqhi_k_y_0_1111121111[color=#2cd719]:
+   [ State_1111121111( ~lock10, counter_id, i, k, y ) ]
+  --[ Pred_eq( h(i, k), y ) ]->
+   [ State_11111211111( ~lock10, counter_id, i, k, y ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqhi_k_y_1_1111121111[color=#2cd719]:
+   [ State_1111121111( ~lock10, counter_id, i, k, y ) ]
+  --[ Pred_not_eq( h(i, k), y ) ]->
+   [ State_11111211112( ~lock10, counter_id, i, k, y ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_k_11111211111[color=#2cd719]:
+   [ State_11111211111( ~lock10, counter_id, i, k, y ) ]
+  -->
+   [ State_111112111111( ~lock10, counter_id, i, k, y ), Out( k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_i2_111112111111[color=#2cd719]:
+   [ State_111112111111( ~lock10, counter_id, i, k, y ), Fr( i2 ) ]
+  -->
+   [ State_1111121111111( ~lock10, counter_id, i, i2, k, y ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_counter_id_i2_1111121111111[color=#2cd719]:
+   [ State_1111121111111( ~lock10, counter_id, i, i2, k, y ) ]
+  --[ Insert( counter_id, i2 ) ]->
+   [ State_11111211111111( ~lock10, counter_id, i, i2, k, y ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_counter_id_11111211111111[color=#2cd719]:
+   [ State_11111211111111( ~lock10, counter_id, i, i2, k, y ) ]
+  --[
+  Unlock( $10, ~lock10, counter_id ), Unlock_10( $10, ~lock10, counter_id )
+  ]->
+   [ State_111112111111111( ~lock10, counter_id, i, i2, k, y ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_i2_111112111111111[color=#2cd719]:
+   [ State_111112111111111( ~lock10, counter_id, i, i2, k, y ) ]
+  -->
+   [ State_1111121111111111( ~lock10, counter_id, i, i2, k, y ), Out( i2 ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111121111111111[color=#2cd719]:
+   [ State_1111121111111111( ~lock10, counter_id, i, i2, k, y ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_i2_11111211112[color=#2cd719]:
+   [ State_11111211112( ~lock10, counter_id, i, k, y ), Fr( i2 ) ]
+  -->
+   [ State_111112111121( ~lock10, counter_id, i, i2, k, y ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_counter_id_i2_111112111121[color=#2cd719]:
+   [ State_111112111121( ~lock10, counter_id, i, i2, k, y ) ]
+  --[ Insert( counter_id, i2 ) ]->
+   [ State_1111121111211( ~lock10, counter_id, i, i2, k, y ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_counter_id_1111121111211[color=#2cd719]:
+   [ State_1111121111211( ~lock10, counter_id, i, i2, k, y ) ]
+  --[
+  Unlock( $10, ~lock10, counter_id ), Unlock_10( $10, ~lock10, counter_id )
+  ]->
+   [ State_11111211112111( ~lock10, counter_id, i, i2, k, y ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_i2_11111211112111[color=#2cd719]:
+   [ State_11111211112111( ~lock10, counter_id, i, i2, k, y ) ]
+  -->
+   [ State_111112111121111( ~lock10, counter_id, i, i2, k, y ), Out( i2 ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111112111121111[color=#2cd719]:
+   [ State_111112111121111( ~lock10, counter_id, i, i2, k, y ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111112112[color=#2cd719]:
+   [ State_111112112( ~lock10, counter_id, k ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_counter_id_zero__11112:
+   [ State_11112( counter_id, k ) ]
+  --[ Insert( counter_id, 'zero' ) ]->
+   [ State_111121( counter_id, k ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111121:
+   [ State_111121( counter_id, k ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+restriction set_in:
+  "∀ x y #t3.
+    (IsIn( x, y ) @ #t3) ⇒
+    (∃ #t2.
+      (((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ∧
+       (∀ #t1. (Delete( x ) @ #t1) ⇒ ((#t1 < #t2) ∨ (#t3 < #t1)))) ∧
+      (∀ #t1 yp.
+        (Insert( x, yp ) @ #t1) ⇒ (((#t1 < #t2) ∨ (#t1 = #t2)) ∨ (#t3 < #t1))))"
+
+restriction set_notin:
+  "∀ x #t3.
+    (IsNotSet( x ) @ #t3) ⇒
+    ((∀ #t1 y. (Insert( x, y ) @ #t1) ⇒ (#t3 < #t1)) ∨
+     (∃ #t1.
+       ((Delete( x ) @ #t1) ∧ (#t1 < #t3)) ∧
+       (∀ #t2 y. ((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ⇒ (#t2 < #t1))))"
+
+restriction predicate_eq:
+  "∀ #i a b. (Pred_eq( a, b ) @ #i) ⇒ (a = b)"
+  // safety formula
+
+restriction predicate_not_eq:
+  "∀ #i a b. (Pred_not_eq( a, b ) @ #i) ⇒ (¬(a = b))"
+  // safety formula
+
+restriction single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+restriction locking_8:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_8( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_8( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+restriction locking_10:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_10( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_10( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+lemma secret_of_k:
+  all-traces "∀ k #j. (Secret( k ) @ #j) ⇒ (¬(∃ #i. !KU( k ) @ #i))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ k #j. (Secret( k ) @ #j) ∧ ∃ #i. (!KU( k ) @ #i)"
+*/
+by sorry
+
+/*
+WARNING: the following wellformedness checks failed!
+
+unbound:
+  rule `lookup_counter_id_as_i_0_11111111' has unbound variables: 
+    i
+  
+  rule `lookup_counter_id_as_i_0_11111211' has unbound variables: 
+    i
+
+Restriction actions:
+  restriction `set_in' references action 
+    (ProtoFact Linear "Delete" 1,1,Linear)
+  but no rule has such an action.
+  
+  restriction `set_notin' references action 
+    (ProtoFact Linear "Delete" 1,1,Linear)
+  but no rule has such an action.
+*/
+
+end

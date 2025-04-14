@@ -1,0 +1,279 @@
+theory STR begin
+
+// Function signature and definition of the equational theory E
+
+builtins: diffie-hellman, multiset
+functions: fst/1[destructor], pair/2, snd/1[destructor], te/1, te_inv/1
+equations:
+    fst(<x.1, x.2>) = x.1,
+    snd(<x.1, x.2>) = x.2,
+    te_inv(te(x)) = x
+
+
+
+
+
+
+
+
+
+restriction Unique:
+  "∀ x #i #j. ((Uniq( x ) @ #i) ∧ (Uniq( x ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+restriction Less:
+  "∀ x y #i. (Less( x, y ) @ #i) ⇒ (∃ z. (x+z) = y)"
+
+restriction Leq:
+  "∀ x y #i. (Leq( x, y ) @ #i) ⇒ ((∃ z. (x+z) = y) ∨ (x = y))"
+
+restriction InEq:
+  "¬(∃ x #i. InEq( x, x ) @ #i)"
+  // safety formula
+
+rule (modulo E) AuthOut:
+   [ !AO( A, x ) ] --> [ Out( x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) CreateGroup:
+   [ In( <'CreateGroup', $gid, k, pM> ) ]
+  --[ Uniq( <'CreateGroup', $gid> ), CreateGroup( $gid, k, pM ) ]->
+   [ !Group( $gid, k, pM ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) StartLeader:
+   [
+   In( <'StartLeader', $gid> ),
+   !Group( $gid, k, (pM_rest+<'1', $A>+<('1'+'1'), $B>) ), Fr( ~x ),
+   !AO( $B, <'EpkOf', $gid, ('1'+'1'), Y> )
+   ]
+  --[
+  Accept( $gid, $A, '1', ('1'+'1'), k, Y^~x ),
+  Uniq( <'StartLeader', $gid> )
+  ]->
+   [
+   LoopLeader( $gid, $A, ('1'+'1'+'1'), Y^~x ),
+   !AO( $A, <'GpkFor', $gid, ('1'+'1'), 'g'^~x> )
+   ]
+
+  /*
+  rule (modulo AC) StartLeader:
+     [
+     In( <'StartLeader', $gid> ),
+     !Group( $gid, k, (pM_rest+<'1', $A>+<('1'+'1'), $B>) ), Fr( ~x ),
+     !AO( $B, <'EpkOf', $gid, ('1'+'1'), Y> )
+     ]
+    --[
+    Accept( $gid, $A, '1', ('1'+'1'), k, z ), Uniq( <'StartLeader', $gid> )
+    ]->
+     [
+     LoopLeader( $gid, $A, ('1'+'1'+'1'), z ),
+     !AO( $A, <'GpkFor', $gid, ('1'+'1'), 'g'^~x> )
+     ]
+    variants (modulo AC)
+    1. ~x    = ~x.14
+       Y     = Y.15
+       z     = Y.15^~x.14
+    
+    2. ~x    = ~x.20
+       Y     = z.27^inv(~x.20)
+       z     = z.27
+    
+    3. ~x    = ~x.97
+       Y     = x.188^x.189
+       z     = x.188^(~x.97*x.189)
+    
+    4. ~x    = ~x.98
+       Y     = x.190^inv((~x.98*x.191))
+       z     = x.190^inv(x.191)
+    
+    5. ~x    = ~x.98
+       Y     = x.190^(x.191*inv(~x.98))
+       z     = x.190^x.191
+    
+    6. ~x    = ~x.99
+       Y     = x.191^(x.192*inv((~x.99*x.193)))
+       z     = x.191^(x.192*inv(x.193))
+  */
+
+rule (modulo E) StepLeader:
+   [
+   In( <'StepLeader', $gid, j> ), LoopLeader( $gid, $A, j, key ),
+   !Group( $gid, k, (pM_rest+<j, $B>) ), !AO( $B, <'EpkOf', $gid, j, Y> )
+   ]
+  --[
+  Accept( $gid, $A, '1', j, k, Y^te(key) ),
+  Uniq( <'StepLeader', $gid, j> ), Leq( j, k )
+  ]->
+   [
+   LoopLeader( $gid, $A, ('1'+j), Y^te(key) ),
+   !AO( $A, <'GpkFor', $gid, j, 'g'^te(key)> )
+   ]
+
+  // loop breaker: [1]
+  /*
+  rule (modulo AC) StepLeader:
+     [
+     In( <'StepLeader', $gid, j> ), LoopLeader( $gid, $A, j, key ),
+     !Group( $gid, k, (pM_rest+<j, $B>) ), !AO( $B, <'EpkOf', $gid, j, Y> )
+     ]
+    --[
+    Accept( $gid, $A, '1', j, k, z ), Uniq( <'StepLeader', $gid, j> ),
+    Leq( j, k )
+    ]->
+     [
+     LoopLeader( $gid, $A, ('1'+j), z ),
+     !AO( $A, <'GpkFor', $gid, j, 'g'^te(key)> )
+     ]
+    variants (modulo AC)
+    1. Y     = Y.17
+       key   = key.20
+       z     = Y.17^te(key.20)
+    
+    2. Y     = z.24^inv(te(key.19))
+       key   = key.19
+       z     = z.24
+    
+    3. Y     = x.163^x.164
+       key   = key.86
+       z     = x.163^(x.164*te(key.86))
+    
+    4. Y     = x.163^inv((x.164*te(key.86)))
+       key   = key.86
+       z     = x.163^inv(x.164)
+    
+    5. Y     = x.163^(x.164*inv(te(key.86)))
+       key   = key.86
+       z     = x.163^x.164
+    
+    6. Y     = x.164^(x.165*inv((x.166*te(key.87))))
+       key   = key.87
+       z     = x.164^(x.165*inv(x.166))
+    // loop breaker: [1]
+  */
+
+rule (modulo E) StartOther:
+   [
+   In( <'StartOther', $gid, i> ), !Group( $gid, k, (pM_rest+<i, $A>) ),
+   Fr( ~x )
+   ]
+  --[ Uniq( <'StartOther', $gid, i> ), InEq( i, '1' ) ]->
+   [ RecvOther( $gid, $A, i, ~x ), !AO( $A, <'EpkOf', $gid, i, 'g'^~x> ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) RecvOther:
+   [
+   In( <'RecvOther', $gid, i> ), !Group( $gid, k, (pM_rest+<'1', $B>) ),
+   RecvOther( $gid, $A, i, ~x ), !AO( $B, <'GpkFor', $gid, i, Y> )
+   ]
+  --[
+  Accept( $gid, $A, i, i, k, Y^~x ), Uniq( <'RecvOther', $gid, i> ),
+  InEq( i, '1' )
+  ]->
+   [ LoopOther( $gid, $A, i, ('1'+i), Y^~x ) ]
+
+  /*
+  rule (modulo AC) RecvOther:
+     [
+     In( <'RecvOther', $gid, i> ), !Group( $gid, k, (pM_rest+<'1', $B>) ),
+     RecvOther( $gid, $A, i, ~x ), !AO( $B, <'GpkFor', $gid, i, Y> )
+     ]
+    --[
+    Accept( $gid, $A, i, i, k, z ), Uniq( <'RecvOther', $gid, i> ),
+    InEq( i, '1' )
+    ]->
+     [ LoopOther( $gid, $A, i, ('1'+i), z ) ]
+    variants (modulo AC)
+    1. ~x    = ~x.15
+       Y     = Y.16
+       z     = Y.16^~x.15
+    
+    2. ~x    = ~x.22
+       Y     = z.30^inv(~x.22)
+       z     = z.30
+    
+    3. ~x    = ~x.33
+       Y     = x.60^x.61
+       z     = x.60^(~x.33*x.61)
+    
+    4. ~x    = ~x.34
+       Y     = x.62^inv((~x.34*x.63))
+       z     = x.62^inv(x.63)
+    
+    5. ~x    = ~x.34
+       Y     = x.62^(x.63*inv(~x.34))
+       z     = x.62^x.63
+    
+    6. ~x    = ~x.35
+       Y     = x.63^(x.64*inv((~x.35*x.65)))
+       z     = x.63^(x.64*inv(x.65))
+  */
+
+rule (modulo E) StepOther:
+   [
+   In( <'StepOther', $gid, i, j> ), LoopOther( $gid, $A, i, j, key ),
+   !Group( $gid, k, (pM_rest+<j, $B>) ), !AO( $B, <'EpkOf', $gid, j, Y> )
+   ]
+  --[ Accept( $gid, $A, i, j, k, Y^te(key) ), Less( i, j ), InEq( i, '1' )
+  ]->
+   [ LoopOther( $gid, $A, i, ('1'+j), Y^te(key) ) ]
+
+  // loop breaker: [1]
+  /*
+  rule (modulo AC) StepOther:
+     [
+     In( <'StepOther', $gid, i, j> ), LoopOther( $gid, $A, i, j, key ),
+     !Group( $gid, k, (pM_rest+<j, $B>) ), !AO( $B, <'EpkOf', $gid, j, Y> )
+     ]
+    --[ Accept( $gid, $A, i, j, k, z ), Less( i, j ), InEq( i, '1' ) ]->
+     [ LoopOther( $gid, $A, i, ('1'+j), z ) ]
+    variants (modulo AC)
+    1. Y     = Y.19
+       key   = key.23
+       z     = Y.19^te(key.23)
+    
+    2. Y     = z.25^inv(te(key.20))
+       key   = key.20
+       z     = z.25
+    
+    3. Y     = x.46^x.47
+       key   = key.28
+       z     = x.46^(x.47*te(key.28))
+    
+    4. Y     = x.46^inv((x.47*te(key.28)))
+       key   = key.28
+       z     = x.46^inv(x.47)
+    
+    5. Y     = x.46^(x.47*inv(te(key.28)))
+       key   = key.28
+       z     = x.46^x.47
+    
+    6. Y     = x.47^(x.48*inv((x.49*te(key.29))))
+       key   = key.29
+       z     = x.47^(x.48*inv(x.49))
+    // loop breaker: [1]
+  */
+
+
+
+
+
+/*
+WARNING: the following wellformedness checks failed!
+
+Check presence of the --prove/--lemma arguments in theory:
+  --> '' from arguments do(es) not correspond to a specified lemma in the theory 
+*/
+
+/*
+Generated from:
+Tamarin version 1.7.1
+Maude version 2.7.1
+Git revision: b031a521f74357ad6423bd3e7c249120d4fc9cd0 (with uncommited changes), branch: reinforcementLearning
+Compiled at: 2022-12-15 14:16:26.452035963 UTC
+*/
+
+end

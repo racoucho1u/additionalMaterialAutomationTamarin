@@ -1,0 +1,10 @@
+dec_limits
+trusted_as_ut_impossible
+untrusted_as_ut_impossible
+untrusted_as_wt_impossible
+trusted_as_wt_impossible
+bad_keys
+no_key_is_wrap_and_dec_or_unwrap_and_dec_ind
+no_key_is_enc_and_unwrap
+cannot_obtain_key_ind
+cannot_obtain_key

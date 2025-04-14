@@ -1,0 +1,2929 @@
+theory TpmEnveloppe begin
+
+// Function signature and definition of the equational theory E
+
+functions: adec/2, aenc/2, certKey/3, certPCR/3, check_certKey/2,
+           check_certPCR/2, check_rep/2, fst/1, get_rep/1, hpcr/2, pair/2, pi41/1,
+           pi42/1, pi43/1, pi44/1, pi51/1, pi52/1, pi53/1, pi54/1, pi55/1, pk/1,
+           rep/2 [private], seal/4, snd/1, tpm_proof/0 [private],
+           unseal/1 [private], unwrap/1 [private], wrap/5
+equations:
+    adec(aenc(x.1, pk(x.2)), x.2) = x.1,
+    check_certKey(certKey(sk, xpk, v), pk(sk)) = <xpk, v>,
+    check_certPCR(certPCR(sk, v, d), pk(sk)) = <v, d>,
+    check_rep(rep(m, loc), loc) = m,
+    fst(<x.1, x.2>) = x.1,
+    get_rep(rep(m, loc)) = m,
+    pi41(<x1, x2, x3, x4>) = x1,
+    pi42(<x1, x2, x3, x4>) = x2,
+    pi43(<x1, x2, x3, x4>) = x3,
+    pi44(<x1, x2, x3, x4>) = x4,
+    pi51(<x1, x2, x3, x4, x5>) = x1,
+    pi52(<x1, x2, x3, x4, x5>) = x2,
+    pi53(<x1, x2, x3, x4, x5>) = x3,
+    pi54(<x1, x2, x3, x4, x5>) = x4,
+    pi55(<x1, x2, x3, x4, x5>) = x5,
+    snd(<x.1, x.2>) = x.2,
+    unseal(seal(x1, x2, x3, x4)) = <x1, x2, x3, x4>,
+    unwrap(wrap(x1, x2, x3, x4, x5)) = <x1, x2, x3, x4, x5>
+
+section{* Envelope protocol *}
+
+rule (modulo E) Init_:
+   [ ] --[ Init( ) ]-> [ State_( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_:
+   [ State_( ) ] --> [ !Semistate_1( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_:
+   [ !Semistate_1( ) ] --> [ State_1( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_pcr_1:
+   [ State_1( ), Fr( pcr ) ] --> [ State_11( pcr ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_pcr_init__11:
+   [ State_11( pcr ) ] --[ Insert( pcr, 'init' ) ]-> [ State_111( pcr ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_aik_111:
+   [ State_111( pcr ), Fr( aik ) ] --> [ State_1111( aik, pcr ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_srk_1111:
+   [ State_1111( aik, pcr ), Fr( srk ) ]
+  -->
+   [ State_11111( aik, pcr, srk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_keyloaded_11111:
+   [ State_11111( aik, pcr, srk ), Fr( keyloaded ) ]
+  -->
+   [ State_111111( aik, keyloaded, pcr, srk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_111111[color=#569dc0]:
+   [ State_111111( aik, keyloaded, pcr, srk ) ]
+  -->
+   [
+   State_1111111( aik, keyloaded, pcr, srk ),
+   State_1111112( aik, keyloaded, pcr, srk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_1111111[color=#569dc0]:
+   [ State_1111111( aik, keyloaded, pcr, srk ) ]
+  -->
+   [ !Semistate_11111111( aik, keyloaded, pcr, srk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_1111111[color=#569dc0]:
+   [ !Semistate_11111111( aik, keyloaded, pcr, srk ) ]
+  -->
+   [ State_11111111( aik, keyloaded, pcr, srk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_pcr_11111111[color=#2cd719]:
+   [ State_11111111( aik, keyloaded, pcr, srk ), Fr( ~lock11 ) ]
+  --[ Lock( $11, ~lock11, pcr ), Lock_11( $11, ~lock11, pcr ) ]->
+   [ State_111111111( ~lock11, aik, keyloaded, pcr, srk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_pcr_as_v_0_111111111[color=#2cd719]:
+   [ State_111111111( ~lock11, aik, keyloaded, pcr, srk ) ]
+  --[ IsIn( pcr, v ) ]->
+   [ State_1111111111( ~lock11, aik, keyloaded, pcr, srk, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_pcr_as_v_1_111111111[color=#2cd719]:
+   [ State_111111111( ~lock11, aik, keyloaded, pcr, srk ) ]
+  --[ IsNotSet( pcr ) ]->
+   [ State_1111111112( ~lock11, aik, keyloaded, pcr, srk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_n_1111111111[color=#2cd719]:
+   [ State_1111111111( ~lock11, aik, keyloaded, pcr, srk, v ), Fr( n ) ]
+  -->
+   [ State_11111111111( ~lock11, aik, keyloaded, n, pcr, srk, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_pcr_hpcr_init_n_11111111111[color=#2cd719]:
+   [ State_11111111111( ~lock11, aik, keyloaded, n, pcr, srk, v ) ]
+  --[ Insert( pcr, hpcr('init', n) ) ]->
+   [ State_111111111111( ~lock11, aik, keyloaded, n, pcr, srk, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_pcr_111111111111[color=#2cd719]:
+   [ State_111111111111( ~lock11, aik, keyloaded, n, pcr, srk, v ) ]
+  --[ Unlock( $11, ~lock11, pcr ), Unlock_11( $11, ~lock11, pcr ) ]->
+   [ State_1111111111111( ~lock11, aik, keyloaded, n, pcr, srk, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_cert_1111111111111[color=#2cd719]:
+   [
+   State_1111111111111( ~lock11, aik, keyloaded, n, pcr, srk, v ),
+   In( cert )
+   ]
+  -->
+   [ State_11111111111111( ~lock11, aik, cert, keyloaded, n, pcr, srk, v ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqsndcheck_certKeycert_pkaik_hpcrhpcr_init_n_obtain__0_11111111111111[color=#2cd719]:
+   [ State_11111111111111( ~lock11, aik, cert, keyloaded, n, pcr, srk, v ) ]
+  --[
+  Pred_eq( snd(check_certKey(cert, pk(aik))),
+           hpcr(hpcr('init', n), 'obtain')
+  )
+  ]->
+   [ State_111111111111111( ~lock11, aik, cert, keyloaded, n, pcr, srk, v )
+   ]
+
+  /*
+  rule (modulo AC) if_eqsndcheck_certKeycert_pkaik_hpcrhpcr_init_n_obtain__0_11111111111111[color=#2cd719]:
+     [ State_11111111111111( ~lock11, aik, cert, keyloaded, n, pcr, srk, v ) ]
+    --[ Pred_eq( z, hpcr(hpcr('init', n), 'obtain') ) ]->
+     [ State_111111111111111( ~lock11, aik, cert, keyloaded, n, pcr, srk, v )
+     ]
+    variants (modulo AC)
+    1. aik   = aik.12
+       cert  = cert.13
+       z     = snd(check_certKey(cert.13, pk(aik.12)))
+    
+    2. aik   = aik.22
+       cert  = certKey(aik.22, x.41, z.29)
+       z     = z.29
+  */
+
+rule (modulo E) if_eqsndcheck_certKeycert_pkaik_hpcrhpcr_init_n_obtain__1_11111111111111[color=#2cd719]:
+   [ State_11111111111111( ~lock11, aik, cert, keyloaded, n, pcr, srk, v ) ]
+  --[
+  Pred_not_eq( snd(check_certKey(cert, pk(aik))),
+               hpcr(hpcr('init', n), 'obtain')
+  )
+  ]->
+   [ State_111111111111112( ~lock11, aik, cert, keyloaded, n, pcr, srk, v )
+   ]
+
+  /*
+  rule (modulo AC) if_eqsndcheck_certKeycert_pkaik_hpcrhpcr_init_n_obtain__1_11111111111111[color=#2cd719]:
+     [ State_11111111111111( ~lock11, aik, cert, keyloaded, n, pcr, srk, v ) ]
+    --[ Pred_not_eq( z, hpcr(hpcr('init', n), 'obtain') ) ]->
+     [ State_111111111111112( ~lock11, aik, cert, keyloaded, n, pcr, srk, v )
+     ]
+    variants (modulo AC)
+    1. aik   = aik.12
+       cert  = cert.13
+       z     = snd(check_certKey(cert.13, pk(aik.12)))
+    
+    2. aik   = aik.22
+       cert  = certKey(aik.22, x.41, z.29)
+       z     = z.29
+  */
+
+rule (modulo E) new_secret_111111111111111[color=#2cd719]:
+   [
+   State_111111111111111( ~lock11, aik, cert, keyloaded, n, pcr, srk, v ),
+   Fr( secret )
+   ]
+  -->
+   [
+   State_1111111111111111( ~lock11, aik, cert, keyloaded, n, pcr, secret,
+                           srk, v
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_Secretsecret_n_aik_1111111111111111[color=#2cd719]:
+   [
+   State_1111111111111111( ~lock11, aik, cert, keyloaded, n, pcr, secret,
+                           srk, v
+   )
+   ]
+  --[ Event( ), Secret( secret, n, aik ) ]->
+   [
+   State_11111111111111111( ~lock11, aik, cert, keyloaded, n, pcr, secret,
+                            srk, v
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_aencsecret_fstcheck_certKeycert_pkaik_11111111111111111[color=#2cd719]:
+   [
+   State_11111111111111111( ~lock11, aik, cert, keyloaded, n, pcr, secret,
+                            srk, v
+   )
+   ]
+  -->
+   [
+   State_111111111111111111( ~lock11, aik, cert, keyloaded, n, pcr, secret,
+                             srk, v
+   ),
+   Out( aenc(secret, fst(check_certKey(cert, pk(aik)))) )
+   ]
+
+  /*
+  rule (modulo AC) out_aencsecret_fstcheck_certKeycert_pkaik_11111111111111111[color=#2cd719]:
+     [
+     State_11111111111111111( ~lock11, aik, cert, keyloaded, n, pcr, secret,
+                              srk, v
+     )
+     ]
+    -->
+     [
+     State_111111111111111111( ~lock11, aik, cert, keyloaded, n, pcr, secret,
+                               srk, v
+     ),
+     Out( aenc(secret, z) )
+     ]
+    variants (modulo AC)
+    1. aik   = aik.11
+       cert  = cert.11
+       z     = fst(check_certKey(cert.11, pk(aik.11)))
+    
+    2. aik   = x.11
+       cert  = certKey(x.11, x.12, x.13)
+       z     = x.12
+  */
+
+rule (modulo E) Zero_111111111111111111[color=#2cd719]:
+   [
+   State_111111111111111111( ~lock11, aik, cert, keyloaded, n, pcr, secret,
+                             srk, v
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111111111112[color=#2cd719]:
+   [ State_111111111111112( ~lock11, aik, cert, keyloaded, n, pcr, srk, v )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111111112[color=#2cd719]:
+   [ State_1111111112( ~lock11, aik, keyloaded, pcr, srk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_1111112[color=#11ec28]:
+   [ State_1111112( aik, keyloaded, pcr, srk ) ]
+  -->
+   [
+   State_11111121( aik, keyloaded, pcr, srk ),
+   State_11111122( aik, keyloaded, pcr, srk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_11111121[color=#45d1e2]:
+   [ State_11111121( aik, keyloaded, pcr, srk ) ]
+  -->
+   [
+   State_111111211( aik, keyloaded, pcr, srk ),
+   State_111111212( aik, keyloaded, pcr, srk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_srk_pksrk_bindk_nil_0_111111211[color=#45d1e2]:
+   [ State_111111211( aik, keyloaded, pcr, srk ), In( keyloaded ) ]
+  --[ ChannelInEvent( keyloaded ) ]->
+   [
+   Out( <srk, pk(srk), 'bindk', 'nil'> ),
+   State_1111112111( aik, keyloaded, pcr, srk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_srk_pksrk_bindk_nil_1_111111211[color=#45d1e2]:
+   [ State_111111211( aik, keyloaded, pcr, srk ) ]
+  -->
+   [
+   Semistate_111111211( aik, keyloaded, pcr, srk ),
+   Message( keyloaded, <srk, pk(srk), 'bindk', 'nil'> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_srk_pksrk_bindk_nil_2_111111211[color=#45d1e2]:
+   [
+   Semistate_111111211( aik, keyloaded, pcr, srk ),
+   Ack( keyloaded, <srk, pk(srk), 'bindk', 'nil'> )
+   ]
+  -->
+   [ State_1111112111( aik, keyloaded, pcr, srk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111112111[color=#45d1e2]:
+   [ State_1111112111( aik, keyloaded, pcr, srk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_pksrk_111111212[color=#45d1e2]:
+   [ State_111111212( aik, keyloaded, pcr, srk ) ]
+  -->
+   [ State_1111112121( aik, keyloaded, pcr, srk ), Out( pk(srk) ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111112121[color=#45d1e2]:
+   [ State_1111112121( aik, keyloaded, pcr, srk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_11111122[color=#11ec28]:
+   [ State_11111122( aik, keyloaded, pcr, srk ) ]
+  -->
+   [ !Semistate_111111221( aik, keyloaded, pcr, srk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_11111122[color=#11ec28]:
+   [ !Semistate_111111221( aik, keyloaded, pcr, srk ) ]
+  -->
+   [ State_111111221( aik, keyloaded, pcr, srk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_111111221[color=#11ec28]:
+   [ State_111111221( aik, keyloaded, pcr, srk ) ]
+  -->
+   [
+   State_1111112211( aik, keyloaded, pcr, srk ),
+   State_1111112212( aik, keyloaded, pcr, srk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_1111112211[color=#11ec28]:
+   [ State_1111112211( aik, keyloaded, pcr, srk ) ]
+  -->
+   [
+   State_11111122111( aik, keyloaded, pcr, srk ),
+   State_11111122112( aik, keyloaded, pcr, srk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_11111122111[color=#11ec28]:
+   [ State_11111122111( aik, keyloaded, pcr, srk ) ]
+  -->
+   [
+   State_111111221111( aik, keyloaded, pcr, srk ),
+   State_111111221112( aik, keyloaded, pcr, srk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_111111221111[color=#11ec28]:
+   [ State_111111221111( aik, keyloaded, pcr, srk ) ]
+  -->
+   [
+   State_1111112211111( aik, keyloaded, pcr, srk ),
+   State_1111112211112( aik, keyloaded, pcr, srk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_1111112211111[color=#11ec28]:
+   [ State_1111112211111( aik, keyloaded, pcr, srk ) ]
+  -->
+   [
+   State_11111122111111( aik, keyloaded, pcr, srk ),
+   State_11111122111112( aik, keyloaded, pcr, srk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_11111122111111[color=#11ec28]:
+   [ State_11111122111111( aik, keyloaded, pcr, srk ) ]
+  -->
+   [
+   State_111111221111111( aik, keyloaded, pcr, srk ),
+   State_111111221111112( aik, keyloaded, pcr, srk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_111111221111111[color=#11ec28]:
+   [ State_111111221111111( aik, keyloaded, pcr, srk ) ]
+  -->
+   [
+   State_1111112211111111( aik, keyloaded, pcr, srk ),
+   State_1111112211111112( aik, keyloaded, pcr, srk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_1111112211111111[color=#11ec28]:
+   [ State_1111112211111111( aik, keyloaded, pcr, srk ) ]
+  -->
+   [
+   State_11111122111111111( aik, keyloaded, pcr, srk ),
+   State_11111122111111112( aik, keyloaded, pcr, srk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_11111122111111111[color=#11ec28]:
+   [ State_11111122111111111( aik, keyloaded, pcr, srk ) ]
+  -->
+   [
+   State_111111221111111111( aik, keyloaded, pcr, srk ),
+   State_111111221111111112( aik, keyloaded, pcr, srk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_pcr_as_value_0_111111221111111111[color=#9f76cd]:
+   [ State_111111221111111111( aik, keyloaded, pcr, srk ) ]
+  --[ IsIn( pcr, value ) ]->
+   [ State_1111112211111111111( aik, keyloaded, pcr, srk, value ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_pcr_as_value_1_111111221111111111[color=#9f76cd]:
+   [ State_111111221111111111( aik, keyloaded, pcr, srk ) ]
+  --[ IsNotSet( pcr ) ]->
+   [ State_1111112211111111112( aik, keyloaded, pcr, srk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_value_1111112211111111111[color=#9f76cd]:
+   [ State_1111112211111111111( aik, keyloaded, pcr, srk, value ) ]
+  -->
+   [
+   State_11111122111111111111( aik, keyloaded, pcr, srk, value ),
+   Out( value )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111122111111111111[color=#9f76cd]:
+   [ State_11111122111111111111( aik, keyloaded, pcr, srk, value ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111112211111111112[color=#9f76cd]:
+   [ State_1111112211111111112( aik, keyloaded, pcr, srk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_quote_x__111111221111111112[color=#ee415c]:
+   [
+   State_111111221111111112( aik, keyloaded, pcr, srk ), In( <'quote', x> )
+   ]
+  -->
+   [ State_1111112211111111121( aik, keyloaded, pcr, srk, x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_pcr_as_v_0_1111112211111111121[color=#ee415c]:
+   [ State_1111112211111111121( aik, keyloaded, pcr, srk, x ) ]
+  --[ IsIn( pcr, v ) ]->
+   [ State_11111122111111111211( aik, keyloaded, pcr, srk, v, x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_pcr_as_v_1_1111112211111111121[color=#ee415c]:
+   [ State_1111112211111111121( aik, keyloaded, pcr, srk, x ) ]
+  --[ IsNotSet( pcr ) ]->
+   [ State_11111122111111111212( aik, keyloaded, pcr, srk, x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_certPCRaik_v_x_11111122111111111211[color=#ee415c]:
+   [ State_11111122111111111211( aik, keyloaded, pcr, srk, v, x ) ]
+  -->
+   [
+   State_111111221111111112111( aik, keyloaded, pcr, srk, v, x ),
+   Out( certPCR(aik, v, x) )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111221111111112111[color=#ee415c]:
+   [ State_111111221111111112111( aik, keyloaded, pcr, srk, v, x ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111122111111111212[color=#ee415c]:
+   [ State_11111122111111111212( aik, keyloaded, pcr, srk, x ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_wrap_key_x_pk_t_v_lock__11111122111111112[color=#79a554]:
+   [
+   State_11111122111111112( aik, keyloaded, pcr, srk ),
+   In( <'wrap_key', x_pk, t, v_lock> )
+   ]
+  -->
+   [ State_111111221111111121( aik, keyloaded, pcr, srk, t, v_lock, x_pk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_pcr_as_v_cur_0_111111221111111121[color=#79a554]:
+   [ State_111111221111111121( aik, keyloaded, pcr, srk, t, v_lock, x_pk ) ]
+  --[ IsIn( pcr, v_cur ) ]->
+   [
+   State_1111112211111111211( aik, keyloaded, pcr, srk, t, v_cur, v_lock,
+                              x_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_pcr_as_v_cur_1_111111221111111121[color=#79a554]:
+   [ State_111111221111111121( aik, keyloaded, pcr, srk, t, v_lock, x_pk ) ]
+  --[ IsNotSet( pcr ) ]->
+   [ State_1111112211111111212( aik, keyloaded, pcr, srk, t, v_lock, x_pk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_keyloaded_x_key_x_pk_t2_v_0_1111112211111111211[color=#79a554]:
+   [
+   State_1111112211111111211( aik, keyloaded, pcr, srk, t, v_cur, v_lock,
+                              x_pk
+   ),
+   In( <keyloaded, x_key, x_pk, t2, v> )
+   ]
+  --[ ChannelInEvent( <keyloaded, x_key, x_pk, t2, v> ) ]->
+   [
+   State_11111122111111112111( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                               v_lock, x_key, x_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_keyloaded_x_key_x_pk_t2_v_1_1111112211111111211[color=#79a554]:
+   [
+   State_1111112211111111211( aik, keyloaded, pcr, srk, t, v_cur, v_lock,
+                              x_pk
+   ),
+   Message( keyloaded, <x_key, x_pk, t2, v> )
+   ]
+  -->
+   [
+   Ack( keyloaded, <x_key, x_pk, t2, v> ),
+   State_11111122111111112111( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                               v_lock, x_key, x_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_11111122111111112111[color=#79a554]:
+   [
+   State_11111122111111112111( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                               v_lock, x_key, x_pk
+   )
+   ]
+  -->
+   [
+   State_111111221111111121111( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                v_lock, x_key, x_pk
+   ),
+   State_111111221111111121112( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                v_lock, x_key, x_pk
+   )
+   ]
+
+  // loop breaker: [0]
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_key_x_pk_t2_v_0_111111221111111121111[color=#79a554]:
+   [
+   State_111111221111111121111( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                v_lock, x_key, x_pk
+   ),
+   In( keyloaded )
+   ]
+  --[ ChannelInEvent( keyloaded ) ]->
+   [
+   Out( <x_key, x_pk, t2, v> ),
+   State_1111112211111111211111( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                 v_lock, x_key, x_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_key_x_pk_t2_v_1_111111221111111121111[color=#79a554]:
+   [
+   State_111111221111111121111( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                v_lock, x_key, x_pk
+   )
+   ]
+  -->
+   [
+   Semistate_111111221111111121111( aik, keyloaded, pcr, srk, t, t2, v,
+                                    v_cur, v_lock, x_key, x_pk
+   ),
+   Message( keyloaded, <x_key, x_pk, t2, v> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_key_x_pk_t2_v_2_111111221111111121111[color=#79a554]:
+   [
+   Semistate_111111221111111121111( aik, keyloaded, pcr, srk, t, t2, v,
+                                    v_cur, v_lock, x_key, x_pk
+   ),
+   Ack( keyloaded, <x_key, x_pk, t2, v> )
+   ]
+  -->
+   [
+   State_1111112211111111211111( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                 v_lock, x_key, x_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111112211111111211111[color=#79a554]:
+   [
+   State_1111112211111111211111( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                 v_lock, x_key, x_pk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqv_nil__0_111111221111111121112[color=#79a554]:
+   [
+   State_111111221111111121112( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                v_lock, x_key, x_pk
+   )
+   ]
+  --[ Pred_eq( v, 'nil' ) ]->
+   [
+   State_1111112211111111211121( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                 v_lock, x_key, x_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqv_nil__1_111111221111111121112[color=#79a554]:
+   [
+   State_111111221111111121112( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                v_lock, x_key, x_pk
+   )
+   ]
+  --[ Pred_not_eq( v, 'nil' ) ]->
+   [
+   State_1111112211111111211122( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                 v_lock, x_key, x_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_key_1111112211111111211121[color=#0f3e79]:
+   [
+   State_1111112211111111211121( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                 v_lock, x_key, x_pk
+   ),
+   Fr( key )
+   ]
+  -->
+   [
+   State_11111122111111112111211( aik, key, keyloaded, pcr, srk, t, t2, v,
+                                  v_cur, v_lock, x_key, x_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_pkkey_wrapx_pk_key_t_tpm_proof_v_lock__11111122111111112111211[color=#0f3e79]:
+   [
+   State_11111122111111112111211( aik, key, keyloaded, pcr, srk, t, t2, v,
+                                  v_cur, v_lock, x_key, x_pk
+   )
+   ]
+  -->
+   [
+   State_111111221111111121112111( aik, key, keyloaded, pcr, srk, t, t2, v,
+                                   v_cur, v_lock, x_key, x_pk
+   ),
+   Out( <pk(key), wrap(x_pk, key, t, tpm_proof, v_lock)> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111221111111121112111[color=#0f3e79]:
+   [
+   State_111111221111111121112111( aik, key, keyloaded, pcr, srk, t, t2, v,
+                                   v_cur, v_lock, x_key, x_pk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqv_v_cur_0_1111112211111111211122[color=#79a554]:
+   [
+   State_1111112211111111211122( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                 v_lock, x_key, x_pk
+   )
+   ]
+  --[ Pred_eq( v, v_cur ) ]->
+   [
+   State_11111122111111112111221( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                  v_lock, x_key, x_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqv_v_cur_1_1111112211111111211122[color=#79a554]:
+   [
+   State_1111112211111111211122( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                 v_lock, x_key, x_pk
+   )
+   ]
+  --[ Pred_not_eq( v, v_cur ) ]->
+   [
+   State_11111122111111112111222( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                  v_lock, x_key, x_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_key_11111122111111112111221[color=#0f3e79]:
+   [
+   State_11111122111111112111221( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                  v_lock, x_key, x_pk
+   ),
+   Fr( key )
+   ]
+  -->
+   [
+   State_111111221111111121112211( aik, key, keyloaded, pcr, srk, t, t2, v,
+                                   v_cur, v_lock, x_key, x_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_pkkey_wrapx_pk_key_t_tpm_proof_v_lock__111111221111111121112211[color=#0f3e79]:
+   [
+   State_111111221111111121112211( aik, key, keyloaded, pcr, srk, t, t2, v,
+                                   v_cur, v_lock, x_key, x_pk
+   )
+   ]
+  -->
+   [
+   State_1111112211111111211122111( aik, key, keyloaded, pcr, srk, t, t2, v,
+                                    v_cur, v_lock, x_key, x_pk
+   ),
+   Out( <pk(key), wrap(x_pk, key, t, tpm_proof, v_lock)> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111112211111111211122111[color=#0f3e79]:
+   [
+   State_1111112211111111211122111( aik, key, keyloaded, pcr, srk, t, t2, v,
+                                    v_cur, v_lock, x_key, x_pk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111122111111112111222[color=#79a554]:
+   [
+   State_11111122111111112111222( aik, keyloaded, pcr, srk, t, t2, v, v_cur,
+                                  v_lock, x_key, x_pk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111112211111111212[color=#79a554]:
+   [ State_1111112211111111212( aik, keyloaded, pcr, srk, t, v_lock, x_pk )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_load_x_pk_x_w__1111112211111112[color=#f0206b]:
+   [
+   State_1111112211111112( aik, keyloaded, pcr, srk ),
+   In( <'load', x_pk, x_w> )
+   ]
+  -->
+   [ State_11111122111111121( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqtpm_proof_pi54unwrapx_w_0_11111122111111121[color=#f0206b]:
+   [ State_11111122111111121( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+  --[ Pred_eq( tpm_proof, pi54(unwrap(x_w)) ) ]->
+   [ State_111111221111111211( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+
+  /*
+  rule (modulo AC) if_eqtpm_proof_pi54unwrapx_w_0_11111122111111121[color=#f0206b]:
+     [ State_11111122111111121( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+    --[ Pred_eq( tpm_proof, z ) ]->
+     [ State_111111221111111211( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+    variants (modulo AC)
+    1. x_w   = x_w.8
+       z     = pi54(unwrap(x_w.8))
+    
+    2. x_w   = wrap(x.8, x.9, x.10, x.11, x.12)
+       z     = x.11
+  */
+
+rule (modulo E) if_eqtpm_proof_pi54unwrapx_w_1_11111122111111121[color=#f0206b]:
+   [ State_11111122111111121( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+  --[ Pred_not_eq( tpm_proof, pi54(unwrap(x_w)) ) ]->
+   [ State_111111221111111212( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+
+  /*
+  rule (modulo AC) if_eqtpm_proof_pi54unwrapx_w_1_11111122111111121[color=#f0206b]:
+     [ State_11111122111111121( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+    --[ Pred_not_eq( tpm_proof, z ) ]->
+     [ State_111111221111111212( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+    variants (modulo AC)
+    1. x_w   = x_w.8
+       z     = pi54(unwrap(x_w.8))
+    
+    2. x_w   = wrap(x.8, x.9, x.10, x.11, x.12)
+       z     = x.11
+  */
+
+rule (modulo E) if_eqpkpi52unwrapx_w_x_pk_0_111111221111111211[color=#f0206b]:
+   [ State_111111221111111211( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+  --[ Pred_eq( pk(pi52(unwrap(x_w))), x_pk ) ]->
+   [ State_1111112211111112111( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+
+  /*
+  rule (modulo AC) if_eqpkpi52unwrapx_w_x_pk_0_111111221111111211[color=#f0206b]:
+     [ State_111111221111111211( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+    --[ Pred_eq( pk(z), x_pk ) ]->
+     [ State_1111112211111112111( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+    variants (modulo AC)
+    1. x_w   = x_w.8
+       z     = pi52(unwrap(x_w.8))
+    
+    2. x_w   = wrap(x.8, x.9, x.10, x.11, x.12)
+       z     = x.9
+  */
+
+rule (modulo E) if_eqpkpi52unwrapx_w_x_pk_1_111111221111111211[color=#f0206b]:
+   [ State_111111221111111211( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+  --[ Pred_not_eq( pk(pi52(unwrap(x_w))), x_pk ) ]->
+   [ State_1111112211111112112( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+
+  /*
+  rule (modulo AC) if_eqpkpi52unwrapx_w_x_pk_1_111111221111111211[color=#f0206b]:
+     [ State_111111221111111211( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+    --[ Pred_not_eq( pk(z), x_pk ) ]->
+     [ State_1111112211111112112( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+    variants (modulo AC)
+    1. x_w   = x_w.8
+       z     = pi52(unwrap(x_w.8))
+    
+    2. x_w   = wrap(x.8, x.9, x.10, x.11, x.12)
+       z     = x.9
+  */
+
+rule (modulo E) lookup_pcr_as_v_0_1111112211111112111[color=#f0206b]:
+   [ State_1111112211111112111( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+  --[ IsIn( pcr, v ) ]->
+   [ State_11111122111111121111( aik, keyloaded, pcr, srk, v, x_pk, x_w ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_pcr_as_v_1_1111112211111112111[color=#f0206b]:
+   [ State_1111112211111112111( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+  --[ IsNotSet( pcr ) ]->
+   [ State_11111122111111121112( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_keyloaded_x_sk_y_pk_t2_v2_0_11111122111111121111[color=#f0206b]:
+   [
+   State_11111122111111121111( aik, keyloaded, pcr, srk, v, x_pk, x_w ),
+   In( <keyloaded, x_sk, y_pk, t2, v2> )
+   ]
+  --[ ChannelInEvent( <keyloaded, x_sk, y_pk, t2, v2> ) ]->
+   [
+   State_111111221111111211111( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                x_sk, x_w, y_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_keyloaded_x_sk_y_pk_t2_v2_1_11111122111111121111[color=#f0206b]:
+   [
+   State_11111122111111121111( aik, keyloaded, pcr, srk, v, x_pk, x_w ),
+   Message( keyloaded, <x_sk, y_pk, t2, v2> )
+   ]
+  -->
+   [
+   Ack( keyloaded, <x_sk, y_pk, t2, v2> ),
+   State_111111221111111211111( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                x_sk, x_w, y_pk
+   )
+   ]
+
+  // loop breaker: [1]
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_111111221111111211111[color=#f0206b]:
+   [
+   State_111111221111111211111( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                x_sk, x_w, y_pk
+   )
+   ]
+  -->
+   [
+   State_1111112211111112111111( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                 x_sk, x_w, y_pk
+   ),
+   State_1111112211111112111112( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                 x_sk, x_w, y_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_sk_y_pk_t2_v2_0_1111112211111112111111[color=#f0206b]:
+   [
+   State_1111112211111112111111( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                 x_sk, x_w, y_pk
+   ),
+   In( keyloaded )
+   ]
+  --[ ChannelInEvent( keyloaded ) ]->
+   [
+   Out( <x_sk, y_pk, t2, v2> ),
+   State_11111122111111121111111( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                  x_sk, x_w, y_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_sk_y_pk_t2_v2_1_1111112211111112111111[color=#f0206b]:
+   [
+   State_1111112211111112111111( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                 x_sk, x_w, y_pk
+   )
+   ]
+  -->
+   [
+   Semistate_1111112211111112111111( aik, keyloaded, pcr, srk, t2, v, v2,
+                                     x_pk, x_sk, x_w, y_pk
+   ),
+   Message( keyloaded, <x_sk, y_pk, t2, v2> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_sk_y_pk_t2_v2_2_1111112211111112111111[color=#f0206b]:
+   [
+   Semistate_1111112211111112111111( aik, keyloaded, pcr, srk, t2, v, v2,
+                                     x_pk, x_sk, x_w, y_pk
+   ),
+   Ack( keyloaded, <x_sk, y_pk, t2, v2> )
+   ]
+  -->
+   [
+   State_11111122111111121111111( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                  x_sk, x_w, y_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111122111111121111111[color=#f0206b]:
+   [
+   State_11111122111111121111111( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                  x_sk, x_w, y_pk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqv_nil__0_1111112211111112111112[color=#f0206b]:
+   [
+   State_1111112211111112111112( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                 x_sk, x_w, y_pk
+   )
+   ]
+  --[ Pred_eq( v, 'nil' ) ]->
+   [
+   State_11111122111111121111121( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                  x_sk, x_w, y_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqv_nil__1_1111112211111112111112[color=#f0206b]:
+   [
+   State_1111112211111112111112( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                 x_sk, x_w, y_pk
+   )
+   ]
+  --[ Pred_not_eq( v, 'nil' ) ]->
+   [
+   State_11111122111111121111122( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                  x_sk, x_w, y_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_pi52unwrapx_w_x_pk_pi53unwrapx_w_pi55unwrapx_w_0_11111122111111121111121[color=#f0206b]:
+   [
+   State_11111122111111121111121( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                  x_sk, x_w, y_pk
+   ),
+   In( keyloaded )
+   ]
+  --[ ChannelInEvent( keyloaded ) ]->
+   [
+   Out( <pi52(unwrap(x_w)), x_pk, pi53(unwrap(x_w)), pi55(unwrap(x_w))> ),
+   State_111111221111111211111211( aik, keyloaded, pcr, srk, t2, v, v2,
+                                   x_pk, x_sk, x_w, y_pk
+   )
+   ]
+
+  /*
+  rule (modulo AC) out_keyloaded_pi52unwrapx_w_x_pk_pi53unwrapx_w_pi55unwrapx_w_0_11111122111111121111121[color=#f0206b]:
+     [
+     State_11111122111111121111121( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                    x_sk, x_w, y_pk
+     ),
+     In( keyloaded )
+     ]
+    --[ ChannelInEvent( keyloaded ) ]->
+     [
+     Out( <z, x_pk, z.1, z.2> ),
+     State_111111221111111211111211( aik, keyloaded, pcr, srk, t2, v, v2,
+                                     x_pk, x_sk, x_w, y_pk
+     )
+     ]
+    variants (modulo AC)
+    1. x_w   = x_w.15
+       z     = pi52(unwrap(x_w.15))
+       z.1   = pi53(unwrap(x_w.15))
+       z.2   = pi55(unwrap(x_w.15))
+    
+    2. x_w   = wrap(x.15, x.16, x.17, x.18, x.19)
+       z     = x.16
+       z.1   = x.17
+       z.2   = x.19
+  */
+
+rule (modulo E) out_keyloaded_pi52unwrapx_w_x_pk_pi53unwrapx_w_pi55unwrapx_w_1_11111122111111121111121[color=#f0206b]:
+   [
+   State_11111122111111121111121( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                  x_sk, x_w, y_pk
+   )
+   ]
+  -->
+   [
+   Semistate_11111122111111121111121( aik, keyloaded, pcr, srk, t2, v, v2,
+                                      x_pk, x_sk, x_w, y_pk
+   ),
+   Message( keyloaded,
+            <pi52(unwrap(x_w)), x_pk, pi53(unwrap(x_w)), pi55(unwrap(x_w))>
+   )
+   ]
+
+  /*
+  rule (modulo AC) out_keyloaded_pi52unwrapx_w_x_pk_pi53unwrapx_w_pi55unwrapx_w_1_11111122111111121111121[color=#f0206b]:
+     [
+     State_11111122111111121111121( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                    x_sk, x_w, y_pk
+     )
+     ]
+    -->
+     [
+     Semistate_11111122111111121111121( aik, keyloaded, pcr, srk, t2, v, v2,
+                                        x_pk, x_sk, x_w, y_pk
+     ),
+     Message( keyloaded, <z, x_pk, z.1, z.2> )
+     ]
+    variants (modulo AC)
+    1. x_w   = x_w.15
+       z     = pi52(unwrap(x_w.15))
+       z.1   = pi53(unwrap(x_w.15))
+       z.2   = pi55(unwrap(x_w.15))
+    
+    2. x_w   = wrap(x.15, x.16, x.17, x.18, x.19)
+       z     = x.16
+       z.1   = x.17
+       z.2   = x.19
+  */
+
+rule (modulo E) out_keyloaded_pi52unwrapx_w_x_pk_pi53unwrapx_w_pi55unwrapx_w_2_11111122111111121111121[color=#f0206b]:
+   [
+   Semistate_11111122111111121111121( aik, keyloaded, pcr, srk, t2, v, v2,
+                                      x_pk, x_sk, x_w, y_pk
+   ),
+   Ack( keyloaded,
+        <pi52(unwrap(x_w)), x_pk, pi53(unwrap(x_w)), pi55(unwrap(x_w))>
+   )
+   ]
+  -->
+   [
+   State_111111221111111211111211( aik, keyloaded, pcr, srk, t2, v, v2,
+                                   x_pk, x_sk, x_w, y_pk
+   )
+   ]
+
+  /*
+  rule (modulo AC) out_keyloaded_pi52unwrapx_w_x_pk_pi53unwrapx_w_pi55unwrapx_w_2_11111122111111121111121[color=#f0206b]:
+     [
+     Semistate_11111122111111121111121( aik, keyloaded, pcr, srk, t2, v, v2,
+                                        x_pk, x_sk, x_w, y_pk
+     ),
+     Ack( keyloaded, <z, x_pk, z.1, z.2> )
+     ]
+    -->
+     [
+     State_111111221111111211111211( aik, keyloaded, pcr, srk, t2, v, v2,
+                                     x_pk, x_sk, x_w, y_pk
+     )
+     ]
+    variants (modulo AC)
+    1. x_w   = x_w.15
+       z     = pi52(unwrap(x_w.15))
+       z.1   = pi53(unwrap(x_w.15))
+       z.2   = pi55(unwrap(x_w.15))
+    
+    2. x_w   = wrap(x.15, x.16, x.17, x.18, x.19)
+       z     = x.16
+       z.1   = x.17
+       z.2   = x.19
+  */
+
+rule (modulo E) Zero_111111221111111211111211[color=#f0206b]:
+   [
+   State_111111221111111211111211( aik, keyloaded, pcr, srk, t2, v, v2,
+                                   x_pk, x_sk, x_w, y_pk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqv_v2_0_11111122111111121111122[color=#f0206b]:
+   [
+   State_11111122111111121111122( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                  x_sk, x_w, y_pk
+   )
+   ]
+  --[ Pred_eq( v, v2 ) ]->
+   [
+   State_111111221111111211111221( aik, keyloaded, pcr, srk, t2, v, v2,
+                                   x_pk, x_sk, x_w, y_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqv_v2_1_11111122111111121111122[color=#f0206b]:
+   [
+   State_11111122111111121111122( aik, keyloaded, pcr, srk, t2, v, v2, x_pk,
+                                  x_sk, x_w, y_pk
+   )
+   ]
+  --[ Pred_not_eq( v, v2 ) ]->
+   [
+   State_111111221111111211111222( aik, keyloaded, pcr, srk, t2, v, v2,
+                                   x_pk, x_sk, x_w, y_pk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_pi52unwrapx_w_x_pk_pi53unwrapx_w_pi55unwrapx_w_0_111111221111111211111221[color=#f0206b]:
+   [
+   State_111111221111111211111221( aik, keyloaded, pcr, srk, t2, v, v2,
+                                   x_pk, x_sk, x_w, y_pk
+   ),
+   In( keyloaded )
+   ]
+  --[ ChannelInEvent( keyloaded ) ]->
+   [
+   Out( <pi52(unwrap(x_w)), x_pk, pi53(unwrap(x_w)), pi55(unwrap(x_w))> ),
+   State_1111112211111112111112211( aik, keyloaded, pcr, srk, t2, v, v2,
+                                    x_pk, x_sk, x_w, y_pk
+   )
+   ]
+
+  /*
+  rule (modulo AC) out_keyloaded_pi52unwrapx_w_x_pk_pi53unwrapx_w_pi55unwrapx_w_0_111111221111111211111221[color=#f0206b]:
+     [
+     State_111111221111111211111221( aik, keyloaded, pcr, srk, t2, v, v2,
+                                     x_pk, x_sk, x_w, y_pk
+     ),
+     In( keyloaded )
+     ]
+    --[ ChannelInEvent( keyloaded ) ]->
+     [
+     Out( <z, x_pk, z.1, z.2> ),
+     State_1111112211111112111112211( aik, keyloaded, pcr, srk, t2, v, v2,
+                                      x_pk, x_sk, x_w, y_pk
+     )
+     ]
+    variants (modulo AC)
+    1. x_w   = x_w.15
+       z     = pi52(unwrap(x_w.15))
+       z.1   = pi53(unwrap(x_w.15))
+       z.2   = pi55(unwrap(x_w.15))
+    
+    2. x_w   = wrap(x.15, x.16, x.17, x.18, x.19)
+       z     = x.16
+       z.1   = x.17
+       z.2   = x.19
+  */
+
+rule (modulo E) out_keyloaded_pi52unwrapx_w_x_pk_pi53unwrapx_w_pi55unwrapx_w_1_111111221111111211111221[color=#f0206b]:
+   [
+   State_111111221111111211111221( aik, keyloaded, pcr, srk, t2, v, v2,
+                                   x_pk, x_sk, x_w, y_pk
+   )
+   ]
+  -->
+   [
+   Semistate_111111221111111211111221( aik, keyloaded, pcr, srk, t2, v, v2,
+                                       x_pk, x_sk, x_w, y_pk
+   ),
+   Message( keyloaded,
+            <pi52(unwrap(x_w)), x_pk, pi53(unwrap(x_w)), pi55(unwrap(x_w))>
+   )
+   ]
+
+  /*
+  rule (modulo AC) out_keyloaded_pi52unwrapx_w_x_pk_pi53unwrapx_w_pi55unwrapx_w_1_111111221111111211111221[color=#f0206b]:
+     [
+     State_111111221111111211111221( aik, keyloaded, pcr, srk, t2, v, v2,
+                                     x_pk, x_sk, x_w, y_pk
+     )
+     ]
+    -->
+     [
+     Semistate_111111221111111211111221( aik, keyloaded, pcr, srk, t2, v, v2,
+                                         x_pk, x_sk, x_w, y_pk
+     ),
+     Message( keyloaded, <z, x_pk, z.1, z.2> )
+     ]
+    variants (modulo AC)
+    1. x_w   = x_w.15
+       z     = pi52(unwrap(x_w.15))
+       z.1   = pi53(unwrap(x_w.15))
+       z.2   = pi55(unwrap(x_w.15))
+    
+    2. x_w   = wrap(x.15, x.16, x.17, x.18, x.19)
+       z     = x.16
+       z.1   = x.17
+       z.2   = x.19
+  */
+
+rule (modulo E) out_keyloaded_pi52unwrapx_w_x_pk_pi53unwrapx_w_pi55unwrapx_w_2_111111221111111211111221[color=#f0206b]:
+   [
+   Semistate_111111221111111211111221( aik, keyloaded, pcr, srk, t2, v, v2,
+                                       x_pk, x_sk, x_w, y_pk
+   ),
+   Ack( keyloaded,
+        <pi52(unwrap(x_w)), x_pk, pi53(unwrap(x_w)), pi55(unwrap(x_w))>
+   )
+   ]
+  -->
+   [
+   State_1111112211111112111112211( aik, keyloaded, pcr, srk, t2, v, v2,
+                                    x_pk, x_sk, x_w, y_pk
+   )
+   ]
+
+  /*
+  rule (modulo AC) out_keyloaded_pi52unwrapx_w_x_pk_pi53unwrapx_w_pi55unwrapx_w_2_111111221111111211111221[color=#f0206b]:
+     [
+     Semistate_111111221111111211111221( aik, keyloaded, pcr, srk, t2, v, v2,
+                                         x_pk, x_sk, x_w, y_pk
+     ),
+     Ack( keyloaded, <z, x_pk, z.1, z.2> )
+     ]
+    -->
+     [
+     State_1111112211111112111112211( aik, keyloaded, pcr, srk, t2, v, v2,
+                                      x_pk, x_sk, x_w, y_pk
+     )
+     ]
+    variants (modulo AC)
+    1. x_w   = x_w.15
+       z     = pi52(unwrap(x_w.15))
+       z.1   = pi53(unwrap(x_w.15))
+       z.2   = pi55(unwrap(x_w.15))
+    
+    2. x_w   = wrap(x.15, x.16, x.17, x.18, x.19)
+       z     = x.16
+       z.1   = x.17
+       z.2   = x.19
+  */
+
+rule (modulo E) Zero_1111112211111112111112211[color=#f0206b]:
+   [
+   State_1111112211111112111112211( aik, keyloaded, pcr, srk, t2, v, v2,
+                                    x_pk, x_sk, x_w, y_pk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111221111111211111222[color=#f0206b]:
+   [
+   State_111111221111111211111222( aik, keyloaded, pcr, srk, t2, v, v2,
+                                   x_pk, x_sk, x_w, y_pk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111122111111121112[color=#f0206b]:
+   [ State_11111122111111121112( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111112211111112112[color=#f0206b]:
+   [ State_1111112211111112112( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111221111111212[color=#f0206b]:
+   [ State_111111221111111212( aik, keyloaded, pcr, srk, x_pk, x_w ) ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_certify_x_pk__111111221111112[color=#c23483]:
+   [
+   State_111111221111112( aik, keyloaded, pcr, srk ),
+   In( <'certify', x_pk> )
+   ]
+  -->
+   [ State_1111112211111121( aik, keyloaded, pcr, srk, x_pk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_keyloaded_x_key_x_pk_t_v_0_1111112211111121[color=#c23483]:
+   [
+   State_1111112211111121( aik, keyloaded, pcr, srk, x_pk ),
+   In( <keyloaded, x_key, x_pk, t, v> )
+   ]
+  --[ ChannelInEvent( <keyloaded, x_key, x_pk, t, v> ) ]->
+   [ State_11111122111111211( aik, keyloaded, pcr, srk, t, v, x_key, x_pk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_keyloaded_x_key_x_pk_t_v_1_1111112211111121[color=#c23483]:
+   [
+   State_1111112211111121( aik, keyloaded, pcr, srk, x_pk ),
+   Message( keyloaded, <x_key, x_pk, t, v> )
+   ]
+  -->
+   [
+   Ack( keyloaded, <x_key, x_pk, t, v> ),
+   State_11111122111111211( aik, keyloaded, pcr, srk, t, v, x_key, x_pk )
+   ]
+
+  // loop breaker: [1]
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_11111122111111211[color=#c23483]:
+   [ State_11111122111111211( aik, keyloaded, pcr, srk, t, v, x_key, x_pk )
+   ]
+  -->
+   [
+   State_111111221111112111( aik, keyloaded, pcr, srk, t, v, x_key, x_pk ),
+   State_111111221111112112( aik, keyloaded, pcr, srk, t, v, x_key, x_pk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_key_x_pk_t_v_0_111111221111112111[color=#c23483]:
+   [
+   State_111111221111112111( aik, keyloaded, pcr, srk, t, v, x_key, x_pk ),
+   In( keyloaded )
+   ]
+  --[ ChannelInEvent( keyloaded ) ]->
+   [
+   Out( <x_key, x_pk, t, v> ),
+   State_1111112211111121111( aik, keyloaded, pcr, srk, t, v, x_key, x_pk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_key_x_pk_t_v_1_111111221111112111[color=#c23483]:
+   [ State_111111221111112111( aik, keyloaded, pcr, srk, t, v, x_key, x_pk )
+   ]
+  -->
+   [
+   Semistate_111111221111112111( aik, keyloaded, pcr, srk, t, v, x_key, x_pk
+   ),
+   Message( keyloaded, <x_key, x_pk, t, v> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_key_x_pk_t_v_2_111111221111112111[color=#c23483]:
+   [
+   Semistate_111111221111112111( aik, keyloaded, pcr, srk, t, v, x_key, x_pk
+   ),
+   Ack( keyloaded, <x_key, x_pk, t, v> )
+   ]
+  -->
+   [
+   State_1111112211111121111( aik, keyloaded, pcr, srk, t, v, x_key, x_pk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111112211111121111[color=#c23483]:
+   [
+   State_1111112211111121111( aik, keyloaded, pcr, srk, t, v, x_key, x_pk )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_certKeyaik_x_pk_v_111111221111112112[color=#c23483]:
+   [ State_111111221111112112( aik, keyloaded, pcr, srk, t, v, x_key, x_pk )
+   ]
+  -->
+   [
+   State_1111112211111121121( aik, keyloaded, pcr, srk, t, v, x_key, x_pk ),
+   Out( certKey(aik, x_pk, v) )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111112211111121121[color=#c23483]:
+   [
+   State_1111112211111121121( aik, keyloaded, pcr, srk, t, v, x_key, x_pk )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_unbind_x_pk_cipher__11111122111112[color=#133c81]:
+   [
+   State_11111122111112( aik, keyloaded, pcr, srk ),
+   In( <'unbind', x_pk, cipher> )
+   ]
+  -->
+   [ State_111111221111121( aik, cipher, keyloaded, pcr, srk, x_pk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_pcr_as_v_0_111111221111121[color=#133c81]:
+   [ State_111111221111121( aik, cipher, keyloaded, pcr, srk, x_pk ) ]
+  --[ IsIn( pcr, v ) ]->
+   [ State_1111112211111211( aik, cipher, keyloaded, pcr, srk, v, x_pk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_pcr_as_v_1_111111221111121[color=#133c81]:
+   [ State_111111221111121( aik, cipher, keyloaded, pcr, srk, x_pk ) ]
+  --[ IsNotSet( pcr ) ]->
+   [ State_1111112211111212( aik, cipher, keyloaded, pcr, srk, x_pk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_keyloaded_x_sk_x_pk_bindk_v2_0_1111112211111211[color=#133c81]:
+   [
+   State_1111112211111211( aik, cipher, keyloaded, pcr, srk, v, x_pk ),
+   In( <keyloaded, x_sk, x_pk, 'bindk', v2> )
+   ]
+  --[ ChannelInEvent( <keyloaded, x_sk, x_pk, 'bindk', v2> ) ]->
+   [
+   State_11111122111112111( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                            x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_keyloaded_x_sk_x_pk_bindk_v2_1_1111112211111211[color=#133c81]:
+   [
+   State_1111112211111211( aik, cipher, keyloaded, pcr, srk, v, x_pk ),
+   Message( keyloaded, <x_sk, x_pk, 'bindk', v2> )
+   ]
+  -->
+   [
+   Ack( keyloaded, <x_sk, x_pk, 'bindk', v2> ),
+   State_11111122111112111( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                            x_sk
+   )
+   ]
+
+  // loop breaker: [1]
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_11111122111112111[color=#133c81]:
+   [
+   State_11111122111112111( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                            x_sk
+   )
+   ]
+  -->
+   [
+   State_111111221111121111( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                             x_sk
+   ),
+   State_111111221111121112( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                             x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_sk_x_pk_bindk_v2_0_111111221111121111[color=#133c81]:
+   [
+   State_111111221111121111( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                             x_sk
+   ),
+   In( keyloaded )
+   ]
+  --[ ChannelInEvent( keyloaded ) ]->
+   [
+   Out( <x_sk, x_pk, 'bindk', v2> ),
+   State_1111112211111211111( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                              x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_sk_x_pk_bindk_v2_1_111111221111121111[color=#133c81]:
+   [
+   State_111111221111121111( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                             x_sk
+   )
+   ]
+  -->
+   [
+   Semistate_111111221111121111( aik, cipher, keyloaded, pcr, srk, v, v2,
+                                 x_pk, x_sk
+   ),
+   Message( keyloaded, <x_sk, x_pk, 'bindk', v2> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_sk_x_pk_bindk_v2_2_111111221111121111[color=#133c81]:
+   [
+   Semistate_111111221111121111( aik, cipher, keyloaded, pcr, srk, v, v2,
+                                 x_pk, x_sk
+   ),
+   Ack( keyloaded, <x_sk, x_pk, 'bindk', v2> )
+   ]
+  -->
+   [
+   State_1111112211111211111( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                              x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111112211111211111[color=#133c81]:
+   [
+   State_1111112211111211111( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                              x_sk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqv2_nil__0_111111221111121112[color=#133c81]:
+   [
+   State_111111221111121112( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                             x_sk
+   )
+   ]
+  --[ Pred_eq( v2, 'nil' ) ]->
+   [
+   State_1111112211111211121( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                              x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqv2_nil__1_111111221111121112[color=#133c81]:
+   [
+   State_111111221111121112( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                             x_sk
+   )
+   ]
+  --[ Pred_not_eq( v2, 'nil' ) ]->
+   [
+   State_1111112211111211122( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                              x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_adeccipher_x_sk_1111112211111211121[color=#133c81]:
+   [
+   State_1111112211111211121( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                              x_sk
+   )
+   ]
+  -->
+   [
+   State_11111122111112111211( aik, cipher, keyloaded, pcr, srk, v, v2,
+                               x_pk, x_sk
+   ),
+   Out( adec(cipher, x_sk) )
+   ]
+
+  /*
+  rule (modulo AC) out_adeccipher_x_sk_1111112211111211121[color=#133c81]:
+     [
+     State_1111112211111211121( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                                x_sk
+     )
+     ]
+    -->
+     [
+     State_11111122111112111211( aik, cipher, keyloaded, pcr, srk, v, v2,
+                                 x_pk, x_sk
+     ),
+     Out( z )
+     ]
+    variants (modulo AC)
+    1. cipher
+             = cipher.11
+       x_sk  = x_sk.11
+       z     = adec(cipher.11, x_sk.11)
+    
+    2. cipher
+             = aenc(x.11, pk(x.12))
+       x_sk  = x.12
+       z     = x.11
+  */
+
+rule (modulo E) Zero_11111122111112111211[color=#133c81]:
+   [
+   State_11111122111112111211( aik, cipher, keyloaded, pcr, srk, v, v2,
+                               x_pk, x_sk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqv_v2_0_1111112211111211122[color=#133c81]:
+   [
+   State_1111112211111211122( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                              x_sk
+   )
+   ]
+  --[ Pred_eq( v, v2 ) ]->
+   [
+   State_11111122111112111221( aik, cipher, keyloaded, pcr, srk, v, v2,
+                               x_pk, x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqv_v2_1_1111112211111211122[color=#133c81]:
+   [
+   State_1111112211111211122( aik, cipher, keyloaded, pcr, srk, v, v2, x_pk,
+                              x_sk
+   )
+   ]
+  --[ Pred_not_eq( v, v2 ) ]->
+   [
+   State_11111122111112111222( aik, cipher, keyloaded, pcr, srk, v, v2,
+                               x_pk, x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_adeccipher_x_sk_11111122111112111221[color=#133c81]:
+   [
+   State_11111122111112111221( aik, cipher, keyloaded, pcr, srk, v, v2,
+                               x_pk, x_sk
+   )
+   ]
+  -->
+   [
+   State_111111221111121112211( aik, cipher, keyloaded, pcr, srk, v, v2,
+                                x_pk, x_sk
+   ),
+   Out( adec(cipher, x_sk) )
+   ]
+
+  /*
+  rule (modulo AC) out_adeccipher_x_sk_11111122111112111221[color=#133c81]:
+     [
+     State_11111122111112111221( aik, cipher, keyloaded, pcr, srk, v, v2,
+                                 x_pk, x_sk
+     )
+     ]
+    -->
+     [
+     State_111111221111121112211( aik, cipher, keyloaded, pcr, srk, v, v2,
+                                  x_pk, x_sk
+     ),
+     Out( z )
+     ]
+    variants (modulo AC)
+    1. cipher
+             = cipher.11
+       x_sk  = x_sk.11
+       z     = adec(cipher.11, x_sk.11)
+    
+    2. cipher
+             = aenc(x.11, pk(x.12))
+       x_sk  = x.12
+       z     = x.11
+  */
+
+rule (modulo E) Zero_111111221111121112211[color=#133c81]:
+   [
+   State_111111221111121112211( aik, cipher, keyloaded, pcr, srk, v, v2,
+                                x_pk, x_sk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111122111112111222[color=#133c81]:
+   [
+   State_11111122111112111222( aik, cipher, keyloaded, pcr, srk, v, v2,
+                               x_pk, x_sk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111112211111212[color=#133c81]:
+   [ State_1111112211111212( aik, cipher, keyloaded, pcr, srk, x_pk ) ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_seal_data_d_x_pcr_x_pk__1111112211112[color=#fde543]:
+   [
+   State_1111112211112( aik, keyloaded, pcr, srk ),
+   In( <'seal_data', d, x_pcr, x_pk> )
+   ]
+  -->
+   [ State_11111122111121( aik, d, keyloaded, pcr, srk, x_pcr, x_pk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_pcr_as_v_0_11111122111121[color=#fde543]:
+   [ State_11111122111121( aik, d, keyloaded, pcr, srk, x_pcr, x_pk ) ]
+  --[ IsIn( pcr, v ) ]->
+   [ State_111111221111211( aik, d, keyloaded, pcr, srk, v, x_pcr, x_pk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_pcr_as_v_1_11111122111121[color=#fde543]:
+   [ State_11111122111121( aik, d, keyloaded, pcr, srk, x_pcr, x_pk ) ]
+  --[ IsNotSet( pcr ) ]->
+   [ State_111111221111212( aik, d, keyloaded, pcr, srk, x_pcr, x_pk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_keyloaded_x_sk_x_pk_sealk_v2_0_111111221111211[color=#fde543]:
+   [
+   State_111111221111211( aik, d, keyloaded, pcr, srk, v, x_pcr, x_pk ),
+   In( <keyloaded, x_sk, x_pk, 'sealk', v2> )
+   ]
+  --[ ChannelInEvent( <keyloaded, x_sk, x_pk, 'sealk', v2> ) ]->
+   [
+   State_1111112211112111( aik, d, keyloaded, pcr, srk, v, v2, x_pcr, x_pk,
+                           x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_keyloaded_x_sk_x_pk_sealk_v2_1_111111221111211[color=#fde543]:
+   [
+   State_111111221111211( aik, d, keyloaded, pcr, srk, v, x_pcr, x_pk ),
+   Message( keyloaded, <x_sk, x_pk, 'sealk', v2> )
+   ]
+  -->
+   [
+   Ack( keyloaded, <x_sk, x_pk, 'sealk', v2> ),
+   State_1111112211112111( aik, d, keyloaded, pcr, srk, v, v2, x_pcr, x_pk,
+                           x_sk
+   )
+   ]
+
+  // loop breaker: [1]
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_1111112211112111[color=#fde543]:
+   [
+   State_1111112211112111( aik, d, keyloaded, pcr, srk, v, v2, x_pcr, x_pk,
+                           x_sk
+   )
+   ]
+  -->
+   [
+   State_11111122111121111( aik, d, keyloaded, pcr, srk, v, v2, x_pcr, x_pk,
+                            x_sk
+   ),
+   State_11111122111121112( aik, d, keyloaded, pcr, srk, v, v2, x_pcr, x_pk,
+                            x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_sk_x_pk_sealk_v2_0_11111122111121111[color=#fde543]:
+   [
+   State_11111122111121111( aik, d, keyloaded, pcr, srk, v, v2, x_pcr, x_pk,
+                            x_sk
+   ),
+   In( keyloaded )
+   ]
+  --[ ChannelInEvent( keyloaded ) ]->
+   [
+   Out( <x_sk, x_pk, 'sealk', v2> ),
+   State_111111221111211111( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                             x_pk, x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_sk_x_pk_sealk_v2_1_11111122111121111[color=#fde543]:
+   [
+   State_11111122111121111( aik, d, keyloaded, pcr, srk, v, v2, x_pcr, x_pk,
+                            x_sk
+   )
+   ]
+  -->
+   [
+   Semistate_11111122111121111( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                                x_pk, x_sk
+   ),
+   Message( keyloaded, <x_sk, x_pk, 'sealk', v2> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_sk_x_pk_sealk_v2_2_11111122111121111[color=#fde543]:
+   [
+   Semistate_11111122111121111( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                                x_pk, x_sk
+   ),
+   Ack( keyloaded, <x_sk, x_pk, 'sealk', v2> )
+   ]
+  -->
+   [
+   State_111111221111211111( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                             x_pk, x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111221111211111[color=#fde543]:
+   [
+   State_111111221111211111( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                             x_pk, x_sk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqv2_nil__0_11111122111121112[color=#fde543]:
+   [
+   State_11111122111121112( aik, d, keyloaded, pcr, srk, v, v2, x_pcr, x_pk,
+                            x_sk
+   )
+   ]
+  --[ Pred_eq( v2, 'nil' ) ]->
+   [
+   State_111111221111211121( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                             x_pk, x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqv2_nil__1_11111122111121112[color=#fde543]:
+   [
+   State_11111122111121112( aik, d, keyloaded, pcr, srk, v, v2, x_pcr, x_pk,
+                            x_sk
+   )
+   ]
+  --[ Pred_not_eq( v2, 'nil' ) ]->
+   [
+   State_111111221111211122( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                             x_pk, x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_sealx_pk_d_tpm_proof_x_pcr_111111221111211121[color=#fde543]:
+   [
+   State_111111221111211121( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                             x_pk, x_sk
+   )
+   ]
+  -->
+   [
+   State_1111112211112111211( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                              x_pk, x_sk
+   ),
+   Out( seal(x_pk, d, tpm_proof, x_pcr) )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111112211112111211[color=#fde543]:
+   [
+   State_1111112211112111211( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                              x_pk, x_sk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqv_v2_0_111111221111211122[color=#fde543]:
+   [
+   State_111111221111211122( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                             x_pk, x_sk
+   )
+   ]
+  --[ Pred_eq( v, v2 ) ]->
+   [
+   State_1111112211112111221( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                              x_pk, x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqv_v2_1_111111221111211122[color=#fde543]:
+   [
+   State_111111221111211122( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                             x_pk, x_sk
+   )
+   ]
+  --[ Pred_not_eq( v, v2 ) ]->
+   [
+   State_1111112211112111222( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                              x_pk, x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_sealx_pk_d_tpm_proof_x_pcr_1111112211112111221[color=#fde543]:
+   [
+   State_1111112211112111221( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                              x_pk, x_sk
+   )
+   ]
+  -->
+   [
+   State_11111122111121112211( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                               x_pk, x_sk
+   ),
+   Out( seal(x_pk, d, tpm_proof, x_pcr) )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111122111121112211[color=#fde543]:
+   [
+   State_11111122111121112211( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                               x_pk, x_sk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111112211112111222[color=#fde543]:
+   [
+   State_1111112211112111222( aik, d, keyloaded, pcr, srk, v, v2, x_pcr,
+                              x_pk, x_sk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111221111212[color=#fde543]:
+   [ State_111111221111212( aik, d, keyloaded, pcr, srk, x_pcr, x_pk ) ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_unseal_data_x__111111221112[color=#275ca9]:
+   [
+   State_111111221112( aik, keyloaded, pcr, srk ), In( <'unseal_data', x> )
+   ]
+  -->
+   [ State_1111112211121( aik, keyloaded, pcr, srk, x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqtpm_proof_pi43unsealx_0_1111112211121[color=#275ca9]:
+   [ State_1111112211121( aik, keyloaded, pcr, srk, x ) ]
+  --[ Pred_eq( tpm_proof, pi43(unseal(x)) ) ]->
+   [ State_11111122111211( aik, keyloaded, pcr, srk, x ) ]
+
+  /*
+  rule (modulo AC) if_eqtpm_proof_pi43unsealx_0_1111112211121[color=#275ca9]:
+     [ State_1111112211121( aik, keyloaded, pcr, srk, x ) ]
+    --[ Pred_eq( tpm_proof, z ) ]->
+     [ State_11111122111211( aik, keyloaded, pcr, srk, x ) ]
+    variants (modulo AC)
+    1. x     = x.7
+       z     = pi43(unseal(x.7))
+    
+    2. x     = seal(x.7, x.8, x.9, x.10)
+       z     = x.9
+  */
+
+rule (modulo E) if_eqtpm_proof_pi43unsealx_1_1111112211121[color=#275ca9]:
+   [ State_1111112211121( aik, keyloaded, pcr, srk, x ) ]
+  --[ Pred_not_eq( tpm_proof, pi43(unseal(x)) ) ]->
+   [ State_11111122111212( aik, keyloaded, pcr, srk, x ) ]
+
+  /*
+  rule (modulo AC) if_eqtpm_proof_pi43unsealx_1_1111112211121[color=#275ca9]:
+     [ State_1111112211121( aik, keyloaded, pcr, srk, x ) ]
+    --[ Pred_not_eq( tpm_proof, z ) ]->
+     [ State_11111122111212( aik, keyloaded, pcr, srk, x ) ]
+    variants (modulo AC)
+    1. x     = x.7
+       z     = pi43(unseal(x.7))
+    
+    2. x     = seal(x.7, x.8, x.9, x.10)
+       z     = x.9
+  */
+
+rule (modulo E) lookup_pcr_as_v_0_11111122111211[color=#275ca9]:
+   [ State_11111122111211( aik, keyloaded, pcr, srk, x ) ]
+  --[ IsIn( pcr, v ) ]->
+   [ State_111111221112111( aik, keyloaded, pcr, srk, v, x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_pcr_as_v_1_11111122111211[color=#275ca9]:
+   [ State_11111122111211( aik, keyloaded, pcr, srk, x ) ]
+  --[ IsNotSet( pcr ) ]->
+   [ State_111111221112112( aik, keyloaded, pcr, srk, x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_keyloaded_x_sk_x_pk_sealk_v3_0_111111221112111[color=#275ca9]:
+   [
+   State_111111221112111( aik, keyloaded, pcr, srk, v, x ),
+   In( <keyloaded, x_sk, x_pk, 'sealk', v3> )
+   ]
+  --[ ChannelInEvent( <keyloaded, x_sk, x_pk, 'sealk', v3> ) ]->
+   [
+   State_1111112211121111( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_keyloaded_x_sk_x_pk_sealk_v3_1_111111221112111[color=#275ca9]:
+   [
+   State_111111221112111( aik, keyloaded, pcr, srk, v, x ),
+   Message( keyloaded, <x_sk, x_pk, 'sealk', v3> )
+   ]
+  -->
+   [
+   Ack( keyloaded, <x_sk, x_pk, 'sealk', v3> ),
+   State_1111112211121111( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk )
+   ]
+
+  // loop breaker: [1]
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_1111112211121111[color=#275ca9]:
+   [
+   State_1111112211121111( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk )
+   ]
+  -->
+   [
+   State_11111122111211111( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   ),
+   State_11111122111211112( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_sk_x_pk_sealk_v3_0_11111122111211111[color=#275ca9]:
+   [
+   State_11111122111211111( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   ),
+   In( keyloaded )
+   ]
+  --[ ChannelInEvent( keyloaded ) ]->
+   [
+   Out( <x_sk, x_pk, 'sealk', v3> ),
+   State_111111221112111111( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_sk_x_pk_sealk_v3_1_11111122111211111[color=#275ca9]:
+   [
+   State_11111122111211111( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk )
+   ]
+  -->
+   [
+   Semistate_11111122111211111( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                x_sk
+   ),
+   Message( keyloaded, <x_sk, x_pk, 'sealk', v3> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_keyloaded_x_sk_x_pk_sealk_v3_2_11111122111211111[color=#275ca9]:
+   [
+   Semistate_11111122111211111( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                x_sk
+   ),
+   Ack( keyloaded, <x_sk, x_pk, 'sealk', v3> )
+   ]
+  -->
+   [
+   State_111111221112111111( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111221112111111[color=#275ca9]:
+   [
+   State_111111221112111111( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eq_pi44unsealx_v3_nil_nil__0_11111122111211112[color=#275ca9]:
+   [
+   State_11111122111211112( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk )
+   ]
+  --[ Pred_eq( <pi44(unseal(x)), v3>, <'nil', 'nil'> ) ]->
+   [
+   State_111111221112111121( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   )
+   ]
+
+  /*
+  rule (modulo AC) if_eq_pi44unsealx_v3_nil_nil__0_11111122111211112[color=#275ca9]:
+     [
+     State_11111122111211112( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk )
+     ]
+    --[ Pred_eq( <z, v3>, <'nil', 'nil'> ) ]->
+     [
+     State_111111221112111121( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+     )
+     ]
+    variants (modulo AC)
+    1. x     = x.12
+       z     = pi44(unseal(x.12))
+    
+    2. x     = seal(x.16, x.17, x.18, z.15)
+       z     = z.15
+  */
+
+rule (modulo E) if_eq_pi44unsealx_v3_nil_nil__1_11111122111211112[color=#275ca9]:
+   [
+   State_11111122111211112( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk )
+   ]
+  --[ Pred_not_eq( <pi44(unseal(x)), v3>, <'nil', 'nil'> ) ]->
+   [
+   State_111111221112111122( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   )
+   ]
+
+  /*
+  rule (modulo AC) if_eq_pi44unsealx_v3_nil_nil__1_11111122111211112[color=#275ca9]:
+     [
+     State_11111122111211112( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk )
+     ]
+    --[ Pred_not_eq( <z, v3>, <'nil', 'nil'> ) ]->
+     [
+     State_111111221112111122( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+     )
+     ]
+    variants (modulo AC)
+    1. x     = x.12
+       z     = pi44(unseal(x.12))
+    
+    2. x     = seal(x.16, x.17, x.18, z.15)
+       z     = z.15
+  */
+
+rule (modulo E) out_pi42unsealx_111111221112111121[color=#275ca9]:
+   [
+   State_111111221112111121( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   )
+   ]
+  -->
+   [
+   State_1111112211121111211( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   ),
+   Out( pi42(unseal(x)) )
+   ]
+
+  /*
+  rule (modulo AC) out_pi42unsealx_111111221112111121[color=#275ca9]:
+     [
+     State_111111221112111121( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+     )
+     ]
+    -->
+     [
+     State_1111112211121111211( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+     ),
+     Out( z )
+     ]
+    variants (modulo AC)
+    1. x     = x.11
+       z     = pi42(unseal(x.11))
+    
+    2. x     = seal(x.11, x.12, x.13, x.14)
+       z     = x.12
+  */
+
+rule (modulo E) Zero_1111112211121111211[color=#275ca9]:
+   [
+   State_1111112211121111211( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eq_pi44unsealx_v_nil_v3__0_111111221112111122[color=#275ca9]:
+   [
+   State_111111221112111122( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   )
+   ]
+  --[ Pred_eq( <pi44(unseal(x)), v>, <'nil', v3> ) ]->
+   [
+   State_1111112211121111221( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   )
+   ]
+
+  /*
+  rule (modulo AC) if_eq_pi44unsealx_v_nil_v3__0_111111221112111122[color=#275ca9]:
+     [
+     State_111111221112111122( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+     )
+     ]
+    --[ Pred_eq( <z, v>, <'nil', v3> ) ]->
+     [
+     State_1111112211121111221( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+     )
+     ]
+    variants (modulo AC)
+    1. x     = x.12
+       z     = pi44(unseal(x.12))
+    
+    2. x     = seal(x.16, x.17, x.18, z.15)
+       z     = z.15
+  */
+
+rule (modulo E) if_eq_pi44unsealx_v_nil_v3__1_111111221112111122[color=#275ca9]:
+   [
+   State_111111221112111122( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   )
+   ]
+  --[ Pred_not_eq( <pi44(unseal(x)), v>, <'nil', v3> ) ]->
+   [
+   State_1111112211121111222( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   )
+   ]
+
+  /*
+  rule (modulo AC) if_eq_pi44unsealx_v_nil_v3__1_111111221112111122[color=#275ca9]:
+     [
+     State_111111221112111122( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+     )
+     ]
+    --[ Pred_not_eq( <z, v>, <'nil', v3> ) ]->
+     [
+     State_1111112211121111222( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+     )
+     ]
+    variants (modulo AC)
+    1. x     = x.12
+       z     = pi44(unseal(x.12))
+    
+    2. x     = seal(x.16, x.17, x.18, z.15)
+       z     = z.15
+  */
+
+rule (modulo E) out_pi42unsealx_1111112211121111221[color=#275ca9]:
+   [
+   State_1111112211121111221( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   )
+   ]
+  -->
+   [
+   State_11111122111211112211( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                               x_sk
+   ),
+   Out( pi42(unseal(x)) )
+   ]
+
+  /*
+  rule (modulo AC) out_pi42unsealx_1111112211121111221[color=#275ca9]:
+     [
+     State_1111112211121111221( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+     )
+     ]
+    -->
+     [
+     State_11111122111211112211( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                 x_sk
+     ),
+     Out( z )
+     ]
+    variants (modulo AC)
+    1. x     = x.11
+       z     = pi42(unseal(x.11))
+    
+    2. x     = seal(x.11, x.12, x.13, x.14)
+       z     = x.12
+  */
+
+rule (modulo E) Zero_11111122111211112211[color=#275ca9]:
+   [
+   State_11111122111211112211( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                               x_sk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eq_pi44unsealx_v3_v_nil__0_1111112211121111222[color=#275ca9]:
+   [
+   State_1111112211121111222( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   )
+   ]
+  --[ Pred_eq( <pi44(unseal(x)), v3>, <v, 'nil'> ) ]->
+   [
+   State_11111122111211112221( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                               x_sk
+   )
+   ]
+
+  /*
+  rule (modulo AC) if_eq_pi44unsealx_v3_v_nil__0_1111112211121111222[color=#275ca9]:
+     [
+     State_1111112211121111222( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+     )
+     ]
+    --[ Pred_eq( <z, v3>, <v, 'nil'> ) ]->
+     [
+     State_11111122111211112221( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                 x_sk
+     )
+     ]
+    variants (modulo AC)
+    1. x     = x.12
+       z     = pi44(unseal(x.12))
+    
+    2. x     = seal(x.16, x.17, x.18, z.15)
+       z     = z.15
+  */
+
+rule (modulo E) if_eq_pi44unsealx_v3_v_nil__1_1111112211121111222[color=#275ca9]:
+   [
+   State_1111112211121111222( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+   )
+   ]
+  --[ Pred_not_eq( <pi44(unseal(x)), v3>, <v, 'nil'> ) ]->
+   [
+   State_11111122111211112222( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                               x_sk
+   )
+   ]
+
+  /*
+  rule (modulo AC) if_eq_pi44unsealx_v3_v_nil__1_1111112211121111222[color=#275ca9]:
+     [
+     State_1111112211121111222( aik, keyloaded, pcr, srk, v, v3, x, x_pk, x_sk
+     )
+     ]
+    --[ Pred_not_eq( <z, v3>, <v, 'nil'> ) ]->
+     [
+     State_11111122111211112222( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                 x_sk
+     )
+     ]
+    variants (modulo AC)
+    1. x     = x.12
+       z     = pi44(unseal(x.12))
+    
+    2. x     = seal(x.16, x.17, x.18, z.15)
+       z     = z.15
+  */
+
+rule (modulo E) out_pi42unsealx_11111122111211112221[color=#275ca9]:
+   [
+   State_11111122111211112221( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                               x_sk
+   )
+   ]
+  -->
+   [
+   State_111111221112111122211( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                x_sk
+   ),
+   Out( pi42(unseal(x)) )
+   ]
+
+  /*
+  rule (modulo AC) out_pi42unsealx_11111122111211112221[color=#275ca9]:
+     [
+     State_11111122111211112221( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                 x_sk
+     )
+     ]
+    -->
+     [
+     State_111111221112111122211( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                  x_sk
+     ),
+     Out( z )
+     ]
+    variants (modulo AC)
+    1. x     = x.11
+       z     = pi42(unseal(x.11))
+    
+    2. x     = seal(x.11, x.12, x.13, x.14)
+       z     = x.12
+  */
+
+rule (modulo E) Zero_111111221112111122211[color=#275ca9]:
+   [
+   State_111111221112111122211( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                x_sk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eq_pi44unsealx_v3_v_v__0_11111122111211112222[color=#275ca9]:
+   [
+   State_11111122111211112222( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                               x_sk
+   )
+   ]
+  --[ Pred_eq( <pi44(unseal(x)), v3>, <v, v> ) ]->
+   [
+   State_111111221112111122221( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                x_sk
+   )
+   ]
+
+  /*
+  rule (modulo AC) if_eq_pi44unsealx_v3_v_v__0_11111122111211112222[color=#275ca9]:
+     [
+     State_11111122111211112222( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                 x_sk
+     )
+     ]
+    --[ Pred_eq( <z, v3>, <v, v> ) ]->
+     [
+     State_111111221112111122221( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                  x_sk
+     )
+     ]
+    variants (modulo AC)
+    1. x     = x.11
+       z     = pi44(unseal(x.11))
+    
+    2. x     = seal(x.11, x.12, x.13, x.14)
+       z     = x.14
+  */
+
+rule (modulo E) if_eq_pi44unsealx_v3_v_v__1_11111122111211112222[color=#275ca9]:
+   [
+   State_11111122111211112222( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                               x_sk
+   )
+   ]
+  --[ Pred_not_eq( <pi44(unseal(x)), v3>, <v, v> ) ]->
+   [
+   State_111111221112111122222( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                x_sk
+   )
+   ]
+
+  /*
+  rule (modulo AC) if_eq_pi44unsealx_v3_v_v__1_11111122111211112222[color=#275ca9]:
+     [
+     State_11111122111211112222( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                 x_sk
+     )
+     ]
+    --[ Pred_not_eq( <z, v3>, <v, v> ) ]->
+     [
+     State_111111221112111122222( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                  x_sk
+     )
+     ]
+    variants (modulo AC)
+    1. x     = x.11
+       z     = pi44(unseal(x.11))
+    
+    2. x     = seal(x.11, x.12, x.13, x.14)
+       z     = x.14
+  */
+
+rule (modulo E) out_pi42unsealx_111111221112111122221[color=#275ca9]:
+   [
+   State_111111221112111122221( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                x_sk
+   )
+   ]
+  -->
+   [
+   State_1111112211121111222211( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                 x_sk
+   ),
+   Out( pi42(unseal(x)) )
+   ]
+
+  /*
+  rule (modulo AC) out_pi42unsealx_111111221112111122221[color=#275ca9]:
+     [
+     State_111111221112111122221( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                  x_sk
+     )
+     ]
+    -->
+     [
+     State_1111112211121111222211( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                   x_sk
+     ),
+     Out( z )
+     ]
+    variants (modulo AC)
+    1. x     = x.11
+       z     = pi42(unseal(x.11))
+    
+    2. x     = seal(x.11, x.12, x.13, x.14)
+       z     = x.12
+  */
+
+rule (modulo E) Zero_1111112211121111222211[color=#275ca9]:
+   [
+   State_1111112211121111222211( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                 x_sk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111221112111122222[color=#275ca9]:
+   [
+   State_111111221112111122222( aik, keyloaded, pcr, srk, v, v3, x, x_pk,
+                                x_sk
+   )
+   ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111221112112[color=#275ca9]:
+   [ State_111111221112112( aik, keyloaded, pcr, srk, x ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111122111212[color=#275ca9]:
+   [ State_11111122111212( aik, keyloaded, pcr, srk, x ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_extend_x__11111122112[color=#8ff0c3]:
+   [ State_11111122112( aik, keyloaded, pcr, srk ), In( <'extend', x> ) ]
+  -->
+   [ State_111111221121( aik, keyloaded, pcr, srk, x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_pcr_111111221121[color=#8ff0c3]:
+   [ State_111111221121( aik, keyloaded, pcr, srk, x ), Fr( ~lock5 ) ]
+  --[ Lock( $5, ~lock5, pcr ), Lock_5( $5, ~lock5, pcr ) ]->
+   [ State_1111112211211( ~lock5, aik, keyloaded, pcr, srk, x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_pcr_as_v_0_1111112211211[color=#8ff0c3]:
+   [ State_1111112211211( ~lock5, aik, keyloaded, pcr, srk, x ) ]
+  --[ IsIn( pcr, v ) ]->
+   [ State_11111122112111( ~lock5, aik, keyloaded, pcr, srk, v, x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_pcr_as_v_1_1111112211211[color=#8ff0c3]:
+   [ State_1111112211211( ~lock5, aik, keyloaded, pcr, srk, x ) ]
+  --[ IsNotSet( pcr ) ]->
+   [ State_11111122112112( ~lock5, aik, keyloaded, pcr, srk, x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_pcr_hpcrv_x_11111122112111[color=#8ff0c3]:
+   [ State_11111122112111( ~lock5, aik, keyloaded, pcr, srk, v, x ) ]
+  --[ Insert( pcr, hpcr(v, x) ) ]->
+   [ State_111111221121111( ~lock5, aik, keyloaded, pcr, srk, v, x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_pcr_111111221121111[color=#8ff0c3]:
+   [ State_111111221121111( ~lock5, aik, keyloaded, pcr, srk, v, x ) ]
+  --[ Unlock( $5, ~lock5, pcr ), Unlock_5( $5, ~lock5, pcr ) ]->
+   [ State_1111112211211111( ~lock5, aik, keyloaded, pcr, srk, v, x ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111112211211111[color=#8ff0c3]:
+   [ State_1111112211211111( ~lock5, aik, keyloaded, pcr, srk, v, x ) ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111122112112[color=#8ff0c3]:
+   [ State_11111122112112( ~lock5, aik, keyloaded, pcr, srk, x ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_reboot__1111112212[color=#54026f]:
+   [ State_1111112212( aik, keyloaded, pcr, srk ), In( 'reboot' ) ]
+  -->
+   [ State_11111122121( aik, keyloaded, pcr, srk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_pcr_11111122121[color=#54026f]:
+   [ State_11111122121( aik, keyloaded, pcr, srk ), Fr( ~lock4 ) ]
+  --[ Lock( $4, ~lock4, pcr ), Lock_4( $4, ~lock4, pcr ) ]->
+   [ State_111111221211( ~lock4, aik, keyloaded, pcr, srk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_pcr_init__111111221211[color=#54026f]:
+   [ State_111111221211( ~lock4, aik, keyloaded, pcr, srk ) ]
+  --[ Insert( pcr, 'init' ) ]->
+   [ State_1111112212111( ~lock4, aik, keyloaded, pcr, srk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_pcr_1111112212111[color=#54026f]:
+   [ State_1111112212111( ~lock4, aik, keyloaded, pcr, srk ) ]
+  --[ Unlock( $4, ~lock4, pcr ), Unlock_4( $4, ~lock4, pcr ) ]->
+   [ State_11111122121111( ~lock4, aik, keyloaded, pcr, srk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111122121111[color=#54026f]:
+   [ State_11111122121111( ~lock4, aik, keyloaded, pcr, srk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+restriction set_in:
+  "∀ x y #t3.
+    (IsIn( x, y ) @ #t3) ⇒
+    (∃ #t2.
+      (((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ∧
+       (∀ #t1. (Delete( x ) @ #t1) ⇒ ((#t1 < #t2) ∨ (#t3 < #t1)))) ∧
+      (∀ #t1 yp.
+        (Insert( x, yp ) @ #t1) ⇒ (((#t1 < #t2) ∨ (#t1 = #t2)) ∨ (#t3 < #t1))))"
+
+restriction set_notin:
+  "∀ x #t3.
+    (IsNotSet( x ) @ #t3) ⇒
+    ((∀ #t1 y. (Insert( x, y ) @ #t1) ⇒ (#t3 < #t1)) ∨
+     (∃ #t1.
+       ((Delete( x ) @ #t1) ∧ (#t1 < #t3)) ∧
+       (∀ #t2 y. ((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ⇒ (#t2 < #t1))))"
+
+restriction predicate_eq:
+  "∀ #i a b. (Pred_eq( a, b ) @ #i) ⇒ (a = b)"
+  // safety formula
+
+restriction predicate_not_eq:
+  "∀ #i a b. (Pred_not_eq( a, b ) @ #i) ⇒ (¬(a = b))"
+  // safety formula
+
+restriction single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+restriction locking_11:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_11( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_11( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+restriction locking_5:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_5( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_5( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+restriction locking_4:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_4( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_4( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+lemma attestation:
+  all-traces
+  "¬(∃ s n x aik #i #j #k.
+      ((Secret( s, n, aik ) @ #i) ∧ (!KU( s ) @ #j)) ∧
+      (!KU( certPCR(aik, hpcr(hpcr('init', n), 'deny'), x) ) @ #k))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ s n x aik #i #j #k.
+  (Secret( s, n, aik ) @ #i) ∧
+  (!KU( s ) @ #j) ∧
+  (!KU( certPCR(aik, hpcr(hpcr('init', n), 'deny'), x) ) @ #k)"
+*/
+by sorry
+
+/*
+WARNING: the following wellformedness checks failed!
+
+unbound:
+  rule `lookup_pcr_as_v_0_111111111' has unbound variables: 
+    v
+  
+  rule `lookup_pcr_as_value_0_111111221111111111' has unbound variables: 
+    value
+  
+  rule `lookup_pcr_as_v_0_1111112211111111121' has unbound variables: 
+    v
+  
+  rule `lookup_pcr_as_v_cur_0_111111221111111121' has unbound variables: 
+    v_cur
+  
+  rule `lookup_pcr_as_v_0_1111112211111112111' has unbound variables: 
+    v
+  
+  rule `lookup_pcr_as_v_0_111111221111121' has unbound variables: 
+    v
+  
+  rule `lookup_pcr_as_v_0_11111122111121' has unbound variables: 
+    v
+  
+  rule `lookup_pcr_as_v_0_11111122111211' has unbound variables: 
+    v
+  
+  rule `lookup_pcr_as_v_0_1111112211211' has unbound variables: 
+    v
+
+Restriction actions:
+  restriction `set_in' references action 
+    (ProtoFact Linear "Delete" 1,1,Linear)
+  but no rule has such an action.
+  
+  restriction `set_notin' references action 
+    (ProtoFact Linear "Delete" 1,1,Linear)
+  but no rule has such an action.
+*/
+
+end

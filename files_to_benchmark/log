@@ -1,0 +1,5 @@
+BEGINNING: smartverif	canauth_dishonest	Received_only_if_Send
+BEGINNING: smartverif	pkcs11	untrusted_as_ut_impossible
+BEGINNING: csf18_xor	chaum_offline_anonymity	coins
+BEGINNING: csf19_wrapping	gcm	Key_UsageImpliesInitialization
+BEGINNING: csf20_disputeResolution	mixvote_ShHh_RF	onlyonce1

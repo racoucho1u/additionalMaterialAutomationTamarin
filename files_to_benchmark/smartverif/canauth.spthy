@@ -1,0 +1,768 @@
+theory CANauth begin
+
+// Function signature and definition of the equational theory E
+
+builtins: multiset
+functions: check_rep/2, fst/1, get_rep/1, hmac/2, pair/2,
+           rep/2 [private], snd/1
+equations:
+    check_rep(rep(m, loc), loc) = m,
+    fst(<x.1, x.2>) = x.1,
+    get_rep(rep(m, loc)) = m,
+    snd(<x.1, x.2>) = x.2
+
+
+section{* CANauth protocol *}
+
+rule (modulo E) Init_:
+   [ ] --[ Init( ) ]-> [ State_( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_:
+   [ State_( ) ] --> [ !Semistate_1( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_:
+   [ !Semistate_1( ) ] --> [ State_1( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_sk_1:
+   [ State_1( ), Fr( sk ) ] --> [ State_11( sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_cellA_11:
+   [ State_11( sk ), Fr( cellA ) ] --> [ State_111( cellA, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_cellA_zero__111:
+   [ State_111( cellA, sk ) ]
+  --[ Insert( cellA, 'zero' ) ]->
+   [ State_1111( cellA, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_cellB_1111:
+   [ State_1111( cellA, sk ), Fr( cellB ) ]
+  -->
+   [ State_11111( cellA, cellB, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_cellB_zero__11111:
+   [ State_11111( cellA, cellB, sk ) ]
+  --[ Insert( cellB, 'zero' ) ]->
+   [ State_111111( cellA, cellB, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_0_111111:
+   [ State_111111( cellA, cellB, sk ) ]
+  -->
+   [ !Semistate_1111111( cellA, cellB, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Rep_1_111111:
+   [ !Semistate_1111111( cellA, cellB, sk ) ]
+  -->
+   [ State_1111111( cellA, cellB, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_1111111:
+   [ State_1111111( cellA, cellB, sk ) ]
+  -->
+   [ State_11111111( cellA, cellB, sk ), State_11111112( cellA, cellB, sk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_11111111:
+   [ State_11111111( cellA, cellB, sk ) ]
+  -->
+   [
+   State_111111111( cellA, cellB, sk ), State_111111112( cellA, cellB, sk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Par_111111111:
+   [ State_111111111( cellA, cellB, sk ) ]
+  -->
+   [
+   State_1111111111( cellA, cellB, sk ),
+   State_1111111112( cellA, cellB, sk )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_cellA_1111111111[color=#569dc0]:
+   [ State_1111111111( cellA, cellB, sk ), Fr( ~lock9 ) ]
+  --[ Lock( $9, ~lock9, cellA ), Lock_9( $9, ~lock9, cellA ) ]->
+   [ State_11111111111( ~lock9, cellA, cellB, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_cellA_as_i_0_11111111111[color=#569dc0]:
+   [ State_11111111111( ~lock9, cellA, cellB, sk ) ]
+  --[ IsIn( cellA, i ) ]->
+   [ State_111111111111( ~lock9, cellA, cellB, i, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_cellA_as_i_1_11111111111[color=#569dc0]:
+   [ State_11111111111( ~lock9, cellA, cellB, sk ) ]
+  --[ IsNotSet( cellA ) ]->
+   [ State_111111111112( ~lock9, cellA, cellB, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_msg_SIGN_j_h__111111111111[color=#569dc0]:
+   [
+   State_111111111111( ~lock9, cellA, cellB, i, sk ),
+   In( <msg, 'SIGN', j, h> )
+   ]
+  -->
+   [ State_1111111111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_smalleri_j_0_1111111111111[color=#569dc0]:
+   [ State_1111111111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Pred_smaller( i, j ) ]->
+   [ State_11111111111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_smalleri_j_1_1111111111111[color=#569dc0]:
+   [ State_1111111111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Pred_not_smaller( i, j ) ]->
+   [ State_11111111111112( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqh_hmacsk_j_msg__0_11111111111111[color=#569dc0]:
+   [ State_11111111111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Pred_eq( h, hmac(sk, <j, msg>) ) ]->
+   [ State_111111111111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqh_hmacsk_j_msg__1_11111111111111[color=#569dc0]:
+   [ State_11111111111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Pred_not_eq( h, hmac(sk, <j, msg>) ) ]->
+   [ State_111111111111112( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_Receivedsk_msg_j_111111111111111[color=#569dc0]:
+   [ State_111111111111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Event( ), Received( sk, msg, j ) ]->
+   [ State_1111111111111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_cellA_j_1111111111111111[color=#569dc0]:
+   [ State_1111111111111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Insert( cellA, j ) ]->
+   [ State_11111111111111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_cellA_11111111111111111[color=#569dc0]:
+   [ State_11111111111111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Unlock( $9, ~lock9, cellA ), Unlock_9( $9, ~lock9, cellA ) ]->
+   [ State_111111111111111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111111111111111[color=#569dc0]:
+   [ State_111111111111111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_cellA_111111111111112[color=#569dc0]:
+   [ State_111111111111112( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Unlock( $9, ~lock9, cellA ), Unlock_9( $9, ~lock9, cellA ) ]->
+   [ State_1111111111111121( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111111111111121[color=#569dc0]:
+   [ State_1111111111111121( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_cellA_11111111111112[color=#569dc0]:
+   [ State_11111111111112( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Unlock( $9, ~lock9, cellA ), Unlock_9( $9, ~lock9, cellA ) ]->
+   [ State_111111111111121( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111111111121[color=#569dc0]:
+   [ State_111111111111121( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111111112[color=#569dc0]:
+   [ State_111111111112( ~lock9, cellA, cellB, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_cellA_1111111112[color=#2cd719]:
+   [ State_1111111112( cellA, cellB, sk ), Fr( ~lock8 ) ]
+  --[ Lock( $8, ~lock8, cellA ), Lock_8( $8, ~lock8, cellA ) ]->
+   [ State_11111111121( ~lock8, cellA, cellB, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_cellA_as_i_0_11111111121[color=#2cd719]:
+   [ State_11111111121( ~lock8, cellA, cellB, sk ) ]
+  --[ IsIn( cellA, i ) ]->
+   [ State_111111111211( ~lock8, cellA, cellB, i, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_cellA_as_i_1_11111111121[color=#2cd719]:
+   [ State_11111111121( ~lock8, cellA, cellB, sk ) ]
+  --[ IsNotSet( cellA ) ]->
+   [ State_111111111212( ~lock8, cellA, cellB, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_msg_111111111211[color=#2cd719]:
+   [ State_111111111211( ~lock8, cellA, cellB, i, sk ), Fr( msg ) ]
+  -->
+   [ State_1111111112111( ~lock8, cellA, cellB, i, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_Sentsk_msg_i__one__1111111112111[color=#2cd719]:
+   [ State_1111111112111( ~lock8, cellA, cellB, i, msg, sk ) ]
+  --[ Event( ), Sent( sk, msg, ('one'+i) ) ]->
+   [ State_11111111121111( ~lock8, cellA, cellB, i, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_msg_SIGN_i__one__hmacsk_i__one__msg___11111111121111[color=#2cd719]:
+   [ State_11111111121111( ~lock8, cellA, cellB, i, msg, sk ) ]
+  -->
+   [
+   State_111111111211111( ~lock8, cellA, cellB, i, msg, sk ),
+   Out( <msg, 'SIGN', ('one'+i), hmac(sk, <('one'+i), msg>)> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_cellA_i__one__111111111211111[color=#2cd719]:
+   [ State_111111111211111( ~lock8, cellA, cellB, i, msg, sk ) ]
+  --[ Insert( cellA, ('one'+i) ) ]->
+   [ State_1111111112111111( ~lock8, cellA, cellB, i, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_cellA_1111111112111111[color=#2cd719]:
+   [ State_1111111112111111( ~lock8, cellA, cellB, i, msg, sk ) ]
+  --[ Unlock( $8, ~lock8, cellA ), Unlock_8( $8, ~lock8, cellA ) ]->
+   [ State_11111111121111111( ~lock8, cellA, cellB, i, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111111121111111[color=#2cd719]:
+   [ State_11111111121111111( ~lock8, cellA, cellB, i, msg, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111111212[color=#2cd719]:
+   [ State_111111111212( ~lock8, cellA, cellB, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_cellB_111111112[color=#11ec28]:
+   [ State_111111112( cellA, cellB, sk ), Fr( ~lock9 ) ]
+  --[ Lock( $9, ~lock9, cellB ), Lock_9( $9, ~lock9, cellB ) ]->
+   [ State_1111111121( ~lock9, cellA, cellB, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_cellB_as_i_0_1111111121[color=#11ec28]:
+   [ State_1111111121( ~lock9, cellA, cellB, sk ) ]
+  --[ IsIn( cellB, i ) ]->
+   [ State_11111111211( ~lock9, cellA, cellB, i, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_cellB_as_i_1_1111111121[color=#11ec28]:
+   [ State_1111111121( ~lock9, cellA, cellB, sk ) ]
+  --[ IsNotSet( cellB ) ]->
+   [ State_11111111212( ~lock9, cellA, cellB, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) in_msg_SIGN_j_h__11111111211[color=#11ec28]:
+   [
+   State_11111111211( ~lock9, cellA, cellB, i, sk ),
+   In( <msg, 'SIGN', j, h> )
+   ]
+  -->
+   [ State_111111112111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_smalleri_j_0_111111112111[color=#11ec28]:
+   [ State_111111112111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Pred_smaller( i, j ) ]->
+   [ State_1111111121111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_smalleri_j_1_111111112111[color=#11ec28]:
+   [ State_111111112111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Pred_not_smaller( i, j ) ]->
+   [ State_1111111121112( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqh_hmacsk_j_msg__0_1111111121111[color=#11ec28]:
+   [ State_1111111121111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Pred_eq( h, hmac(sk, <j, msg>) ) ]->
+   [ State_11111111211111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) if_eqh_hmacsk_j_msg__1_1111111121111[color=#11ec28]:
+   [ State_1111111121111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Pred_not_eq( h, hmac(sk, <j, msg>) ) ]->
+   [ State_11111111211112( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_Receivedsk_msg_j_11111111211111[color=#11ec28]:
+   [ State_11111111211111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Event( ), Received( sk, msg, j ) ]->
+   [ State_111111112111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_cellB_j_111111112111111[color=#11ec28]:
+   [ State_111111112111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Insert( cellB, j ) ]->
+   [ State_1111111121111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_cellB_1111111121111111[color=#11ec28]:
+   [ State_1111111121111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Unlock( $9, ~lock9, cellB ), Unlock_9( $9, ~lock9, cellB ) ]->
+   [ State_11111111211111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111111211111111[color=#11ec28]:
+   [ State_11111111211111111( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_cellB_11111111211112[color=#11ec28]:
+   [ State_11111111211112( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Unlock( $9, ~lock9, cellB ), Unlock_9( $9, ~lock9, cellB ) ]->
+   [ State_111111112111121( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111112111121[color=#11ec28]:
+   [ State_111111112111121( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_cellB_1111111121112[color=#11ec28]:
+   [ State_1111111121112( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  --[ Unlock( $9, ~lock9, cellB ), Unlock_9( $9, ~lock9, cellB ) ]->
+   [ State_11111111211121( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111111211121[color=#11ec28]:
+   [ State_11111111211121( ~lock9, cellA, cellB, h, i, j, msg, sk ) ]
+  -->
+   [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_11111111212[color=#11ec28]:
+   [ State_11111111212( ~lock9, cellA, cellB, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lock_cellB_11111112[color=#45d1e2]:
+   [ State_11111112( cellA, cellB, sk ), Fr( ~lock8 ) ]
+  --[ Lock( $8, ~lock8, cellB ), Lock_8( $8, ~lock8, cellB ) ]->
+   [ State_111111121( ~lock8, cellA, cellB, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_cellB_as_i_0_111111121[color=#45d1e2]:
+   [ State_111111121( ~lock8, cellA, cellB, sk ) ]
+  --[ IsIn( cellB, i ) ]->
+   [ State_1111111211( ~lock8, cellA, cellB, i, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) lookup_cellB_as_i_1_111111121[color=#45d1e2]:
+   [ State_111111121( ~lock8, cellA, cellB, sk ) ]
+  --[ IsNotSet( cellB ) ]->
+   [ State_1111111212( ~lock8, cellA, cellB, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) new_msg_1111111211[color=#45d1e2]:
+   [ State_1111111211( ~lock8, cellA, cellB, i, sk ), Fr( msg ) ]
+  -->
+   [ State_11111112111( ~lock8, cellA, cellB, i, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) event_Sentsk_msg_i__one__11111112111[color=#45d1e2]:
+   [ State_11111112111( ~lock8, cellA, cellB, i, msg, sk ) ]
+  --[ Event( ), Sent( sk, msg, ('one'+i) ) ]->
+   [ State_111111121111( ~lock8, cellA, cellB, i, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) out_msg_SIGN_i__one__hmacsk_i__one__msg___111111121111[color=#45d1e2]:
+   [ State_111111121111( ~lock8, cellA, cellB, i, msg, sk ) ]
+  -->
+   [
+   State_1111111211111( ~lock8, cellA, cellB, i, msg, sk ),
+   Out( <msg, 'SIGN', ('one'+i), hmac(sk, <('one'+i), msg>)> )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) insert_cellB_i__one__1111111211111[color=#45d1e2]:
+   [ State_1111111211111( ~lock8, cellA, cellB, i, msg, sk ) ]
+  --[ Insert( cellB, ('one'+i) ) ]->
+   [ State_11111112111111( ~lock8, cellA, cellB, i, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) unlock_cellB_11111112111111[color=#45d1e2]:
+   [ State_11111112111111( ~lock8, cellA, cellB, i, msg, sk ) ]
+  --[ Unlock( $8, ~lock8, cellB ), Unlock_8( $8, ~lock8, cellB ) ]->
+   [ State_111111121111111( ~lock8, cellA, cellB, i, msg, sk ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_111111121111111[color=#45d1e2]:
+   [ State_111111121111111( ~lock8, cellA, cellB, i, msg, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Zero_1111111212[color=#45d1e2]:
+   [ State_1111111212( ~lock8, cellA, cellB, sk ) ] --> [ ]
+
+  /* has exactly the trivial AC variant */
+
+restriction set_in:
+  "∀ x y #t3.
+    (IsIn( x, y ) @ #t3) ⇒
+    (∃ #t2.
+      (((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ∧
+       (∀ #t1. (Delete( x ) @ #t1) ⇒ ((#t1 < #t2) ∨ (#t3 < #t1)))) ∧
+      (∀ #t1 yp.
+        (Insert( x, yp ) @ #t1) ⇒ (((#t1 < #t2) ∨ (#t1 = #t2)) ∨ (#t3 < #t1))))"
+
+restriction set_notin:
+  "∀ x #t3.
+    (IsNotSet( x ) @ #t3) ⇒
+    ((∀ #t1 y. (Insert( x, y ) @ #t1) ⇒ (#t3 < #t1)) ∨
+     (∃ #t1.
+       ((Delete( x ) @ #t1) ∧ (#t1 < #t3)) ∧
+       (∀ #t2 y. ((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ⇒ (#t2 < #t1))))"
+
+restriction predicate_eq:
+  "∀ #i a b. (Pred_eq( a, b ) @ #i) ⇒ (a = b)"
+  // safety formula
+
+restriction predicate_not_eq:
+  "∀ #i a b. (Pred_not_eq( a, b ) @ #i) ⇒ (¬(a = b))"
+  // safety formula
+
+restriction single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+restriction locking_9:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_9( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_9( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+restriction locking_8:
+  "∀ p pp l x lp #t1 #t3.
+    ((Lock_8( p, l, x ) @ #t1) ∧ (Lock( pp, lp, x ) @ #t3)) ⇒
+    ((((#t1 < #t3) ∧
+       (∃ #t2.
+         (((((Unlock_8( p, l, x ) @ #t2) ∧ (#t1 < #t2)) ∧ (#t2 < #t3)) ∧
+           (∀ #t0 pp.1. (Unlock( pp.1, l, x ) @ #t0) ⇒ (#t0 = #t2))) ∧
+          (∀ pp.1 lpp #t0.
+            (Lock( pp.1, lpp, x ) @ #t0) ⇒
+            (((#t0 < #t1) ∨ (#t0 = #t1)) ∨ (#t2 < #t0)))) ∧
+         (∀ pp.1 lpp #t0.
+           (Unlock( pp.1, lpp, x ) @ #t0) ⇒
+           (((#t0 < #t1) ∨ (#t2 < #t0)) ∨ (#t2 = #t0))))) ∨
+      (#t3 < #t1)) ∨
+     (#t1 = #t3))"
+
+restriction predicate1:
+  "∀ #i a b. (Pred_not_smaller( a, b ) @ #i) ⇒ (¬(∃ z. (a+z) = b))"
+  // safety formula
+
+restriction predicate0:
+  "∀ #i a b. (Pred_smaller( a, b ) @ #i) ⇒ (∃ z. (a+z) = b)"
+
+lemma Received_only_if_Send:
+  all-traces
+  "∀ sk msg i #u.
+    (Received( sk, msg, i ) @ #u) ⇒
+    (∃ #v. (#v < #u) ∧ (Sent( sk, msg, i ) @ #v))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ sk msg i #u.
+  (Received( sk, msg, i ) @ #u)
+ ∧
+  ∀ #v. (Sent( sk, msg, i ) @ #v) ⇒ ¬(#v < #u)"
+*/
+by sorry
+
+lemma wellformed_Received:
+  all-traces
+  "∀ sk msg1 i1 msg2 i2 #u #v.
+    ((Received( sk, msg1, i1 ) @ #u) ∧ (Received( sk, msg2, i2 ) @ #v)) ⇒
+    (((msg1 = msg2) ∧ (i1 = i2)) ∨ ((¬(msg1 = msg2)) ∧ (¬(i1 = i2))))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ sk msg1 i1 msg2 i2 #u #v.
+  (Received( sk, msg1, i1 ) @ #u) ∧ (Received( sk, msg2, i2 ) @ #v)
+ ∧
+  (((¬(msg1 = msg2)) ∨ (¬(i1 = i2)))) ∧ (((msg1 = msg2) ∨ (i1 = i2)))"
+*/
+by sorry
+
+/*
+WARNING: the following wellformedness checks failed!
+
+unbound:
+  rule `lookup_cellA_as_i_0_11111111111' has unbound variables: 
+    i
+  
+  rule `lookup_cellA_as_i_0_11111111121' has unbound variables: 
+    i
+  
+  rule `lookup_cellB_as_i_0_1111111121' has unbound variables: 
+    i
+  
+  rule `lookup_cellB_as_i_0_111111121' has unbound variables: 
+    i
+
+Restriction actions:
+  restriction `set_in' references action 
+    (ProtoFact Linear "Delete" 1,1,Linear)
+  but no rule has such an action.
+  
+  restriction `set_notin' references action 
+    (ProtoFact Linear "Delete" 1,1,Linear)
+  but no rule has such an action.
+*/
+
+tactic: Received_only_if_Send_0
+deprio: 
+allGoal "PremiseG (#t2,PremIdx {getPremIdx = 0}) (Fact {factTag = ProtoFact Linear State_1111111111111111 8, factAnnotations = fromList [], factTerms = [~lock9,~n,cellB,h,i,i,msg,sk]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,Union(i,x)]})"
+deprio: 
+allGoal "PremiseG (#t2,PremIdx {getPremIdx = 0}) (Fact {factTag = ProtoFact Linear State_111111111211111 6, factAnnotations = fromList [], factTerms = [~lock8,~n,cellB,i,msg,sk]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Unlock_9 3, factAnnotations = fromList [], factTerms = [$9,~lock9,~n]})"
+deprio: 
+allGoal "ActionG #vk (Fact {factTag = KUFact, factAnnotations = fromList [], factTerms = [~n]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #t2 Free #t2),GAto (EqE Free #t2 Free #t2),GAto (Less Free #vr Free #t2)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #t2 Free #t2),GAto (EqE Free #t2 Free #t2)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GConj (Conj {getConj = [GAto (Less Free #vr Free #vr),GGuarded Ex [(t2,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock_9 3, factAnnotations = fromList [], factTerms = [Free $9,Free ~lock9,Free ~n]})] (GConj (Conj {getConj = [GAto (Less Free #vr Bound 0),GAto (Less Bound 0 Free #vr),GGuarded All [(t0,LSortNode),(pp,LSortMsg)] [Action Bound 1 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 0,Free ~lock9,Free ~n]})] (GAto (EqE Bound 1 Bound 2)),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Lock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (EqE Bound 0 Free #vr),GAto (Less Bound 3 Bound 0)]})),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (Less Bound 3 Bound 0),GAto (EqE Bound 3 Bound 0)]}))]}))]}),GAto (Less Free #vr Free #vr),GAto (EqE Free #vr Free #vr)]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,i]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #vr Free #t2),GAto (EqE Free #vr Free #t2)]})"
+
+
+
+tactic: Received_only_if_Send_1
+deprio: 
+allGoal "PremiseG (#t2,PremIdx {getPremIdx = 0}) (Fact {factTag = ProtoFact Linear State_1111111111111111 8, factAnnotations = fromList [], factTerms = [~lock9,~n,cellB,h,i,i,msg,sk]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,Union(i,x)]})"
+deprio: 
+allGoal "PremiseG (#t2,PremIdx {getPremIdx = 0}) (Fact {factTag = ProtoFact Linear State_111111111211111 6, factAnnotations = fromList [], factTerms = [~lock8,~n,cellB,i,msg,sk]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Unlock_9 3, factAnnotations = fromList [], factTerms = [$9,~lock9,~n]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #t2 Free #t2),GAto (EqE Free #t2 Free #t2),GAto (Less Free #vr Free #t2)]})"
+deprio: 
+allGoal "ActionG #vk (Fact {factTag = KUFact, factAnnotations = fromList [], factTerms = [~n]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #t2 Free #t2),GAto (EqE Free #t2 Free #t2)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #vr Free #vr),GAto (Less Free #t2 Free #vr)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GConj (Conj {getConj = [GAto (Less Free #vr Free #vr),GGuarded Ex [(t2,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock_9 3, factAnnotations = fromList [], factTerms = [Free $9,Free ~lock9,Free ~n]})] (GConj (Conj {getConj = [GAto (Less Free #vr Bound 0),GAto (Less Bound 0 Free #vr),GGuarded All [(t0,LSortNode),(pp,LSortMsg)] [Action Bound 1 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 0,Free ~lock9,Free ~n]})] (GAto (EqE Bound 1 Bound 2)),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Lock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (EqE Bound 0 Free #vr),GAto (Less Bound 3 Bound 0)]})),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (Less Bound 3 Bound 0),GAto (EqE Bound 3 Bound 0)]}))]}))]}),GAto (Less Free #vr Free #vr),GAto (EqE Free #vr Free #vr)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GConj (Conj {getConj = [GAto (Less Free #vr Free #vr),GGuarded Ex [(t2,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock_8 3, factAnnotations = fromList [], factTerms = [Free $8,Free ~lock8,Free ~n]})] (GConj (Conj {getConj = [GAto (Less Free #vr Bound 0),GAto (Less Bound 0 Free #vr),GGuarded All [(t0,LSortNode),(pp,LSortMsg)] [Action Bound 1 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 0,Free ~lock8,Free ~n]})] (GAto (EqE Bound 1 Bound 2)),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Lock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (EqE Bound 0 Free #vr),GAto (Less Bound 3 Bound 0)]})),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (Less Bound 3 Bound 0),GAto (EqE Bound 3 Bound 0)]}))]}))]}),GAto (Less Free #vr Free #vr)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GConj (Conj {getConj = [GAto (Less Free #vr Free #vr),GGuarded Ex [(t2,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock_9 3, factAnnotations = fromList [], factTerms = [Free $9,Free ~lock9,Free ~n]})] (GConj (Conj {getConj = [GAto (Less Free #vr Bound 0),GAto (Less Bound 0 Free #vr),GGuarded All [(t0,LSortNode),(pp,LSortMsg)] [Action Bound 1 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 0,Free ~lock9,Free ~n]})] (GAto (EqE Bound 1 Bound 2)),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Lock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (EqE Bound 0 Free #vr),GAto (Less Bound 3 Bound 0)]})),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (Less Bound 3 Bound 0),GAto (EqE Bound 3 Bound 0)]}))]}))]}),GAto (Less Free #vr Free #vr)]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,i]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #vr Free #vr),GAto (EqE Free #vr Free #vr),GAto (Less Free #t2 Free #vr)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #vr Free #t2),GAto (EqE Free #vr Free #t2)]})"
+
+
+
+tactic: Received_only_if_Send_2
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,Union(i,x,x)]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,Union(x,x)]})"
+deprio: 
+allGoal "PremiseG (#t2,PremIdx {getPremIdx = 0}) (Fact {factTag = ProtoFact Linear State_1111111111111111 8, factAnnotations = fromList [], factTerms = [~lock9,~n,cellB,h,i,i,msg,sk]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Unlock_9 3, factAnnotations = fromList [], factTerms = [$9,~lock9,~n]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #vr Free #t2),GAto (EqE Free #vr Free #t2),GAto (Less Free #vr Free #vr)]})"
+deprio: 
+allGoal "PremiseG (#t2,PremIdx {getPremIdx = 0}) (Fact {factTag = ProtoFact Linear State_111111111211111 6, factAnnotations = fromList [], factTerms = [~lock8,~n,cellB,i,msg,sk]})"
+deprio: 
+allGoal "PremiseG (#t2,PremIdx {getPremIdx = 0}) (Fact {factTag = ProtoFact Linear State_111111111211111 6, factAnnotations = fromList [], factTerms = [~lock8,~n,cellB,x,msg,sk]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,Union('one',x)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #t2 Free #t2),GAto (EqE Free #t2 Free #t2)]})"
+deprio: 
+allGoal "PremiseG (#t2,PremIdx {getPremIdx = 0}) (Fact {factTag = ProtoFact Linear State_111111111211111 6, factAnnotations = fromList [], factTerms = [~lock8,~n,cellB,Union(x,x),msg,sk]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,Union(i,x)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #vr Free #vr),GAto (Less Free #t2 Free #vr)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #t2 Free #t2),GAto (EqE Free #t2 Free #t2),GAto (Less Free #vr Free #t2)]})"
+deprio: 
+allGoal "ActionG #vk (Fact {factTag = KUFact, factAnnotations = fromList [], factTerms = [~n]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GConj (Conj {getConj = [GAto (Less Free #vr Free #vr),GGuarded Ex [(t2,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock_9 3, factAnnotations = fromList [], factTerms = [Free $9,Free ~lock9,Free ~n]})] (GConj (Conj {getConj = [GAto (Less Free #vr Bound 0),GAto (Less Bound 0 Free #vr),GGuarded All [(t0,LSortNode),(pp,LSortMsg)] [Action Bound 1 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 0,Free ~lock9,Free ~n]})] (GAto (EqE Bound 1 Bound 2)),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Lock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (EqE Bound 0 Free #vr),GAto (Less Bound 3 Bound 0)]})),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (Less Bound 3 Bound 0),GAto (EqE Bound 3 Bound 0)]}))]}))]}),GAto (Less Free #vr Free #vr),GAto (EqE Free #vr Free #vr)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #t2 Free #t2),GAto (Less Free #vr Free #t2)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GConj (Conj {getConj = [GAto (Less Free #vr Free #vr),GGuarded Ex [(t2,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock_8 3, factAnnotations = fromList [], factTerms = [Free $8,Free ~lock8,Free ~n]})] (GConj (Conj {getConj = [GAto (Less Free #vr Bound 0),GAto (Less Bound 0 Free #vr),GGuarded All [(t0,LSortNode),(pp,LSortMsg)] [Action Bound 1 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 0,Free ~lock8,Free ~n]})] (GAto (EqE Bound 1 Bound 2)),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Lock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (EqE Bound 0 Free #vr),GAto (Less Bound 3 Bound 0)]})),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (Less Bound 3 Bound 0),GAto (EqE Bound 3 Bound 0)]}))]}))]}),GAto (Less Free #vr Free #vr),GAto (EqE Free #vr Free #vr)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GConj (Conj {getConj = [GAto (Less Free #vr Free #vr),GGuarded Ex [(t2,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock_8 3, factAnnotations = fromList [], factTerms = [Free $8,Free ~lock8,Free ~n]})] (GConj (Conj {getConj = [GAto (Less Free #vr Bound 0),GAto (Less Bound 0 Free #vr),GGuarded All [(t0,LSortNode),(pp,LSortMsg)] [Action Bound 1 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 0,Free ~lock8,Free ~n]})] (GAto (EqE Bound 1 Bound 2)),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Lock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (EqE Bound 0 Free #vr),GAto (Less Bound 3 Bound 0)]})),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (Less Bound 3 Bound 0),GAto (EqE Bound 3 Bound 0)]}))]}))]}),GAto (Less Free #vr Free #vr)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GConj (Conj {getConj = [GAto (Less Free #vr Free #vr),GGuarded Ex [(t2,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock_9 3, factAnnotations = fromList [], factTerms = [Free $9,Free ~lock9,Free ~n]})] (GConj (Conj {getConj = [GAto (Less Free #vr Bound 0),GAto (Less Bound 0 Free #vr),GGuarded All [(t0,LSortNode),(pp,LSortMsg)] [Action Bound 1 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 0,Free ~lock9,Free ~n]})] (GAto (EqE Bound 1 Bound 2)),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Lock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (EqE Bound 0 Free #vr),GAto (Less Bound 3 Bound 0)]})),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (Less Bound 3 Bound 0),GAto (EqE Bound 3 Bound 0)]}))]}))]}),GAto (Less Free #vr Free #vr)]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,i]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #vr Free #vr),GAto (EqE Free #vr Free #vr),GAto (Less Free #t2 Free #vr)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #vr Free #t2),GAto (EqE Free #vr Free #t2)]})"
+
+
+
+tactic: Received_only_if_Send_3
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,Union('one','one')]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,Union('one','one',x)]})"
+deprio: 
+allGoal "ActionG #vk (Fact {factTag = KUFact, factAnnotations = fromList [], factTerms = [hmac(~n,pair(Union(z,i),msg))]})"
+deprio: 
+allGoal "PremiseG (#t2,PremIdx {getPremIdx = 0}) (Fact {factTag = ProtoFact Linear State_1111111111111111 8, factAnnotations = fromList [], factTerms = [~lock9,~n,cellB,h,i,i,msg,sk]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,Union(x,x)]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,Union('one',x,x)]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Unlock_9 3, factAnnotations = fromList [], factTerms = [$9,~lock9,~n]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #vr Free #t2),GAto (EqE Free #vr Free #t2),GAto (Less Free #vr Free #vr)]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,Union(x,i)]})"
+deprio: 
+allGoal "PremiseG (#t2,PremIdx {getPremIdx = 0}) (Fact {factTag = ProtoFact Linear State_111111111211111 6, factAnnotations = fromList [], factTerms = [~lock8,~n,cellB,x,msg,sk]})"
+deprio: 
+allGoal "PremiseG (#t2,PremIdx {getPremIdx = 0}) (Fact {factTag = ProtoFact Linear State_111111111211111 6, factAnnotations = fromList [], factTerms = [~lock8,~n,cellB,i,msg,sk]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,Union('one',x)]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,Union(i,x,x)]})"
+deprio: 
+allGoal "PremiseG (#t2,PremIdx {getPremIdx = 0}) (Fact {factTag = ProtoFact Linear State_111111111211111 6, factAnnotations = fromList [], factTerms = [~lock8,~n,cellB,Union(i,x),msg,sk]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #t2 Free #t2),GAto (EqE Free #t2 Free #t2)]})"
+deprio: 
+allGoal "PremiseG (#t2,PremIdx {getPremIdx = 0}) (Fact {factTag = ProtoFact Linear State_111111111211111 6, factAnnotations = fromList [], factTerms = [~lock8,~n,cellB,Union(x,x),msg,sk]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #vr Free #vr),GAto (Less Free #t2 Free #vr)]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,Union(i,x)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GConj (Conj {getConj = [GAto (Less Free #vr Free #vr),GGuarded Ex [(t2,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock_9 3, factAnnotations = fromList [], factTerms = [Free $9,Free ~lock9,Free ~n]})] (GConj (Conj {getConj = [GAto (Less Free #vr Bound 0),GAto (Less Bound 0 Free #vr),GGuarded All [(t0,LSortNode),(pp,LSortMsg)] [Action Bound 1 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 0,Free ~lock9,Free ~n]})] (GAto (EqE Bound 1 Bound 2)),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Lock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (EqE Bound 0 Free #vr),GAto (Less Bound 3 Bound 0)]})),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (Less Bound 3 Bound 0),GAto (EqE Bound 3 Bound 0)]}))]}))]}),GAto (Less Free #vr Free #vr),GAto (EqE Free #vr Free #vr)]})"
+deprio: 
+allGoal "ActionG #vk (Fact {factTag = KUFact, factAnnotations = fromList [], factTerms = [~n]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #t2 Free #t2),GAto (EqE Free #t2 Free #t2),GAto (Less Free #vr Free #t2)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #t2 Free #t2),GAto (Less Free #vr Free #t2)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GConj (Conj {getConj = [GAto (Less Free #vr Free #vr),GGuarded Ex [(t2,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock_8 3, factAnnotations = fromList [], factTerms = [Free $8,Free ~lock8,Free ~n]})] (GConj (Conj {getConj = [GAto (Less Free #vr Bound 0),GAto (Less Bound 0 Free #vr),GGuarded All [(t0,LSortNode),(pp,LSortMsg)] [Action Bound 1 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 0,Free ~lock8,Free ~n]})] (GAto (EqE Bound 1 Bound 2)),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Lock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (EqE Bound 0 Free #vr),GAto (Less Bound 3 Bound 0)]})),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (Less Bound 3 Bound 0),GAto (EqE Bound 3 Bound 0)]}))]}))]}),GAto (Less Free #vr Free #vr),GAto (EqE Free #vr Free #vr)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GConj (Conj {getConj = [GAto (Less Free #vr Free #vr),GGuarded Ex [(t2,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock_8 3, factAnnotations = fromList [], factTerms = [Free $8,Free ~lock8,Free ~n]})] (GConj (Conj {getConj = [GAto (Less Free #vr Bound 0),GAto (Less Bound 0 Free #vr),GGuarded All [(t0,LSortNode),(pp,LSortMsg)] [Action Bound 1 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 0,Free ~lock8,Free ~n]})] (GAto (EqE Bound 1 Bound 2)),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Lock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (EqE Bound 0 Free #vr),GAto (Less Bound 3 Bound 0)]})),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (Less Bound 3 Bound 0),GAto (EqE Bound 3 Bound 0)]}))]}))]}),GAto (Less Free #vr Free #vr)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GConj (Conj {getConj = [GAto (Less Free #vr Free #vr),GGuarded Ex [(t2,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock_9 3, factAnnotations = fromList [], factTerms = [Free $9,Free ~lock9,Free ~n]})] (GConj (Conj {getConj = [GAto (Less Free #vr Bound 0),GAto (Less Bound 0 Free #vr),GGuarded All [(t0,LSortNode),(pp,LSortMsg)] [Action Bound 1 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 0,Free ~lock9,Free ~n]})] (GAto (EqE Bound 1 Bound 2)),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Lock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (EqE Bound 0 Free #vr),GAto (Less Bound 3 Bound 0)]})),GGuarded All [(pp,LSortMsg),(lpp,LSortMsg),(t0,LSortNode)] [Action Bound 0 (Fact {factTag = ProtoFact Linear Unlock 3, factAnnotations = fromList [], factTerms = [Bound 2,Bound 1,Free ~n]})] (GDisj (Disj {getDisj = [GAto (Less Bound 0 Free #vr),GAto (Less Bound 3 Bound 0),GAto (EqE Bound 3 Bound 0)]}))]}))]}),GAto (Less Free #vr Free #vr)]})"
+deprio: 
+allGoal "ActionG #t2 (Fact {factTag = ProtoFact Linear Insert 2, factAnnotations = fromList [], factTerms = [~n,i]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #vr Free #vr),GAto (EqE Free #vr Free #vr),GAto (Less Free #t2 Free #vr)]})"
+deprio: 
+allGoal "DisjG (Disj {getDisj = [GAto (Less Free #vr Free #t2),GAto (EqE Free #vr Free #t2)]})"
+
+
+
+end

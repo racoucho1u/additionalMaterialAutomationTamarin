@@ -1,0 +1,402 @@
+theory SetAbst begin
+
+// Function signature and definition of the equational theory E
+
+functions: adec/2, aenc/2, fst/1, pair/2, pk/1, sign/2, snd/1,
+           true/0, verify/3
+equations:
+    adec(aenc(x.1, pk(x.2)), x.2) = x.1,
+    fst(<x.1, x.2>) = x.1,
+    snd(<x.1, x.2>) = x.2,
+    verify(sign(x.1, x.2), x.1, pk(x.2)) = true
+
+section{* The PKI-example *}
+
+rule 0:
+   [ ] --[ Init( ) ]-> [ S_0( ) ]
+
+  
+
+rule Rep0:
+   [ S_0( ) ] --> [ !S_01( ) ]
+
+  
+
+rule Par01:
+   [ !S_01( ) ] --> [ S_011( ), S_012( ) ]
+
+  
+
+rule new_pki011:
+   [ S_011( ), Fr( pki ) ] --> [ S_0111( pki ) ]
+
+  
+
+rule Rep0111:
+   [ S_0111( pki ) ] --> [ !S_01111( pki ) ]
+
+  
+
+rule Par01111:
+   [ !S_01111( pki ) ]
+  -->
+   [ S_011111( pki ), S_011112( pki ) ]
+
+  
+
+rule in___new___user_011111:
+   [ S_011111( pki ), In( <'new', user> ) ]
+  -->
+   [ S_0111111( pki, user, 'new' ) ]
+
+  
+
+rule new__sk0111111:
+   [ S_0111111( pki, user, 'new' ), Fr( ~sk ) ]
+  -->
+   [ S_01111111( ~sk, pki, user, 'new' ) ]
+
+  
+
+rule lock_user01111111:
+   [ S_01111111( ~sk, pki, user, 'new' ), Fr( ~lock7 ) ]
+  --[ Lock( ~lock7, user ) ]->
+   [ S_011111111( ~lock7, ~sk, pki, user, 'new' ) ]
+
+  
+
+rule event_HonestKey__sk_011111111:
+   [ S_011111111( ~lock7, ~sk, pki, user, 'new' ) ]
+  --[ Event( ), HonestKey( ~sk ) ]->
+   [ S_0111111111( ~lock7, ~sk, pki, user, 'new' ) ]
+
+  
+
+rule insert___SERVER___pki__user__pk__sk_0111111111:
+   [ S_0111111111( ~lock7, ~sk, pki, user, 'new' ) ]
+  --[ Insert( <'SERVER', pki, user>, pk(~sk) ) ]->
+   [ S_01111111111( ~lock7, ~sk, pki, user, 'new' ) ]
+
+  
+
+rule insert___USER___user___sk01111111111:
+   [ S_01111111111( ~lock7, ~sk, pki, user, 'new' ) ]
+  --[ Insert( <'USER', user>, ~sk ) ]->
+   [ S_011111111111( ~lock7, ~sk, pki, user, 'new' ) ]
+
+  
+
+rule event_HonestKey__sk_011111111111:
+   [ S_011111111111( ~lock7, ~sk, pki, user, 'new' ) ]
+  --[ Event( ), HonestKey( ~sk ) ]->
+   [ S_0111111111111( ~lock7, ~sk, pki, user, 'new' ) ]
+
+  
+
+rule unlock_user0111111111111:
+   [ S_0111111111111( ~lock7, ~sk, pki, user, 'new' ) ]
+  --[ Unlock( ~lock7, user ) ]->
+   [ S_01111111111111( ~lock7, ~sk, pki, user, 'new' ) ]
+
+  
+
+rule out_pk__sk_01111111111111:
+   [ S_01111111111111( ~lock7, ~sk, pki, user, 'new' ) ]
+  -->
+   [
+   Out( pk(~sk) ),
+   S_011111111111111( ~lock7, ~sk, pki, user, 'new' )
+   ]
+
+  
+
+rule in___renew___user__pk_nsk__011112:
+   [ S_011112( pki ), In( <'renew', user, pk(nsk)> ) ]
+  -->
+   [ S_0111121( pki, nsk, user, 'renew' ) ]
+
+  
+
+rule in_sign___renew___user__pk_nsk____sk_0111121:
+   [
+   S_0111121( pki, nsk, user, 'renew' ),
+   In( sign(<'renew', user, pk(nsk)>, sk) )
+   ]
+  -->
+   [ S_01111211( sk, pki, nsk, user, 'renew' ) ]
+
+  
+
+rule lock_user01111211:
+   [ S_01111211( sk, pki, nsk, user, 'renew' ), Fr( ~lock7 ) ]
+  --[ Lock( ~lock7, user ) ]->
+   [ S_011112111( ~lock7, sk, pki, nsk, user, 'renew' ) ]
+
+  
+
+rule lookup___SERVER___pki__user__as_pksk011112111:
+   [ S_011112111( ~lock7, sk, pki, nsk, user, 'renew' ) ]
+  --[ IsIn( <'SERVER', pki, user>, pksk ) ]->
+   [ S_0111121111( pksk, ~lock7, sk, pki, nsk, user, 'renew' ) ]
+
+  
+
+rule else__lookup___SERVER___pki__user__as_pksk011112111:
+   [ S_011112111( ~lock7, sk, pki, nsk, user, 'renew' ) ]
+  --[ IsNotSet( <'SERVER', pki, user> ) ]->
+   [ S_0111121112( ~lock7, sk, pki, nsk, user, 'renew' ) ]
+
+  
+
+rule if_pksk_pk_sk_0111121111:
+   [ S_0111121111( pksk, ~lock7, sk, pki, nsk, user, 'renew' ) ]
+  --[ Eq( pksk, pk(sk) ) ]->
+   [ S_01111211111( pksk, ~lock7, sk, pki, nsk, user, 'renew' ) ]
+
+  
+
+rule else__if_pksk_pk_sk_0111121111:
+   [ S_0111121111( pksk, ~lock7, sk, pki, nsk, user, 'renew' ) ]
+  --[ NotEq( pksk, pk(sk) ) ]->
+   [ S_01111211112( pksk, ~lock7, sk, pki, nsk, user, 'renew' ) ]
+
+  
+
+rule delete___SERVER___pki__user_01111211111:
+   [ S_01111211111( pksk, ~lock7, sk, pki, nsk, user, 'renew' ) ]
+  --[ Delete( <'SERVER', pki, user> ) ]->
+   [ S_011112111111( pksk, ~lock7, sk, pki, nsk, user, 'renew' ) ]
+
+  
+
+rule insert___SERVER___pki__user__pk_nsk_011112111111:
+   [ S_011112111111( pksk, ~lock7, sk, pki, nsk, user, 'renew' ) ]
+  --[ Insert( <'SERVER', pki, user>, pk(nsk) ) ]->
+   [ S_0111121111111( pksk, ~lock7, sk, pki, nsk, user, 'renew' )
+   ]
+
+  
+
+rule unlock_user0111121111111:
+   [ S_0111121111111( pksk, ~lock7, sk, pki, nsk, user, 'renew' )
+   ]
+  --[ Unlock( ~lock7, user ) ]->
+   [ S_01111211111111( pksk, ~lock7, sk, pki, nsk, user, 'renew' )
+   ]
+
+  
+
+rule out_sign___confirm___sign___renew___user__pk_nsk____sk____pki_01111211111111:
+   [ S_01111211111111( pksk, ~lock7, sk, pki, nsk, user, 'renew' )
+   ]
+  -->
+   [
+   Out( sign(<'confirm', sign(<'renew', user, pk(nsk)>, sk)>, pki) ),
+   S_011112111111111( pksk, ~lock7, sk, pki, nsk, user, 'renew' )
+   ]
+
+  
+
+rule Zero01111211112:
+   [ S_01111211112( pksk, ~lock7, sk, pki, nsk, user, 'renew' ) ]
+  -->
+   [ ]
+
+  
+
+rule new_user012:
+   [ S_012( ), Fr( user ) ] --> [ S_0121( user ) ]
+
+  
+
+rule Rep0121:
+   [ S_0121( user ) ] --> [ !S_01211( user ) ]
+
+  
+
+rule new__nsk01211:
+   [ !S_01211( user ), Fr( ~nsk ) ]
+  -->
+   [ S_012111( ~nsk, user ) ]
+
+  
+
+rule lock_user012111:
+   [ S_012111( ~nsk, user ), Fr( ~lock11 ) ]
+  --[ Lock( ~lock11, user ) ]->
+   [ S_0121111( ~lock11, ~nsk, user ) ]
+
+  
+
+rule lookup___USER___user__as__sk0121111:
+   [ S_0121111( ~lock11, ~nsk, user ) ]
+  --[ IsIn( <'USER', user>, ~sk ) ]->
+   [ S_01211111( ~sk, ~lock11, ~nsk, user ) ]
+
+  
+
+rule else__lookup___USER___user__as__sk0121111:
+   [ S_0121111( ~lock11, ~nsk, user ) ]
+  --[ IsNotSet( <'USER', user> ) ]->
+   [ S_01211112( ~lock11, ~nsk, user ) ]
+
+  
+
+rule event_HonestKey__nsk_01211111:
+   [ S_01211111( ~sk, ~lock11, ~nsk, user ) ]
+  --[ Event( ), HonestKey( ~nsk ) ]->
+   [ S_012111111( ~sk, ~lock11, ~nsk, user ) ]
+
+  
+
+rule delete___USER___user_012111111:
+   [ S_012111111( ~sk, ~lock11, ~nsk, user ) ]
+  --[ Delete( <'USER', user> ) ]->
+   [ S_0121111111( ~sk, ~lock11, ~nsk, user ) ]
+
+  
+
+rule insert___USER___user___nsk0121111111:
+   [ S_0121111111( ~sk, ~lock11, ~nsk, user ) ]
+  --[ Insert( <'USER', user>, ~nsk ) ]->
+   [ S_01211111111( ~sk, ~lock11, ~nsk, user ) ]
+
+  
+
+rule unlock_user01211111111:
+   [ S_01211111111( ~sk, ~lock11, ~nsk, user ) ]
+  --[ Unlock( ~lock11, user ) ]->
+   [ S_012111111111( ~sk, ~lock11, ~nsk, user ) ]
+
+  
+
+rule out___renew___user__pk__nsk__012111111111:
+   [ S_012111111111( ~sk, ~lock11, ~nsk, user ) ]
+  -->
+   [
+   Out( <'renew', user, pk(~nsk)> ),
+   S_0121111111111( ~sk, ~lock11, ~nsk, user )
+   ]
+
+  
+
+rule out_sign___renew___user__pk__nsk_____sk_0121111111111:
+   [ S_0121111111111( ~sk, ~lock11, ~nsk, user ) ]
+  -->
+   [
+   Out( sign(<'renew', user, pk(~nsk)>, ~sk) ),
+   S_01211111111111( ~sk, ~lock11, ~nsk, user )
+   ]
+
+  
+
+rule in_sign___confirm___sign___renew___user__pk__nsk_____sk____pki_01211111111111:
+   [
+   S_01211111111111( ~sk, ~lock11, ~nsk, user ),
+   In( sign(<'confirm', sign(<'renew', user, pk(~nsk)>, ~sk)>, pki) )
+   ]
+  -->
+   [
+   S_012111111111111( pki, 'confirm', ~sk, ~nsk, user, 'renew',
+                          ~sk, ~lock11, ~nsk, user
+   )
+   ]
+
+  
+
+rule event_Revoked__sk_012111111111111:
+   [
+   S_012111111111111( pki, 'confirm', ~sk, ~nsk, user, 'renew',
+                          ~sk, ~lock11, ~nsk, user
+   )
+   ]
+  --[ Event( ), Revoked( ~sk ) ]->
+   [
+   S_0121111111111111( pki, 'confirm', ~sk, ~nsk, user, 'renew',
+                           ~sk, ~lock11, ~nsk, user
+   )
+   ]
+
+  
+
+rule out__sk0121111111111111:
+   [
+   S_0121111111111111( pki, 'confirm', ~sk, ~nsk, user, 'renew',
+                           ~sk, ~lock11, ~nsk, user
+   )
+   ]
+  -->
+   [
+   Out( ~sk ),
+   S_01211111111111111( pki, 'confirm', ~sk, ~nsk, user, 'renew',
+                            ~sk, ~lock11, ~nsk, user
+   )
+   ]
+
+  
+
+axiom single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+axiom conditional1:
+  "∀ x y #i. (Eq( x, y ) @ #i) ⇒ (x = y)"
+  // safety formula
+
+axiom conditional2:
+  "∀ x y #i. (NotEq( x, y ) @ #i) ⇒ (¬(x = y))"
+  // safety formula
+
+axiom set_in:
+  "∀ x y #t3.
+    (IsIn( x, y ) @ #t3) ⇒
+    (∃ #t2.
+      (((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ∧
+       (∀ #t1. (Delete( x ) @ #t1) ⇒ ((#t1 < #t2) ∨ (#t3 < #t1)))) ∧
+      (∀ #t1 yp.
+        (Insert( x, yp ) @ #t1) ⇒
+        (((#t1 < #t2) ∨ (#t1 = #t2)) ∨ (#t3 < #t1))))"
+
+axiom set_notin:
+  "∀ x #t3.
+    (IsNotSet( x ) @ #t3) ⇒
+    ((∀ #t1 y. (Insert( x, y ) @ #t1) ⇒ (#t3 < #t1)) ∨
+     (∃ #t1.
+       ((Delete( x ) @ #t1) ∧ (#t1 < #t3)) ∧
+       (∀ #t2 y. ((Insert( x, y ) @ #t2) ∧ (#t2 < #t3)) ⇒ (#t2 < #t1))))"
+
+axiom immeadiate_in:
+  "∀ t #i.
+    (ChannelInEvent( t ) @ #i) ⇒
+    (∃ #j.
+      (((K( t ) @ #j) ∧ (#j < #i)) ∧
+       (∀ #k. (Event( ) @ #k) ⇒ ((#k < #j) ∨ (#i < #k)))) ∧
+      (∀ #k t2. (K( t2 ) @ #k) ⇒ (((#k < #j) ∨ (#i < #k)) ∨ (#k = #j))))"
+
+axiom locking:
+  "∀ n x np #i #j.
+    ((Lock( n, x ) @ #i) ∧ (Lock( np, x ) @ #j)) ⇒
+    ((((#i < #j) ∧
+       (∃ #k.
+         ((((Unlock( n, x ) @ #k) ∧ (#i < #k)) ∧ (#k < #j)) ∧
+          (∀ np.1 #l. (Lock( np.1, x ) @ #l) ⇒ (¬((#i < #l) ∧ (#l < #k))))) ∧
+         (∀ np.1 #l.
+           (Unlock( np.1, x ) @ #l) ⇒ (¬((#i < #l) ∧ (#l < #k)))))) ∨
+      (#j < #i)) ∨
+     (#i = #j))"
+
+lemma Knows_Honest_Key_imp_Revoked:
+  all-traces
+  "∀ sk #i #d.
+    ((HonestKey( sk ) @ #i) ∧ (K( sk ) @ #d)) ⇒
+    (∃ #r. Revoked( sk ) @ #r)"
+/*
+guarded formula characterizing all counter-examples:
+"∃ sk #i #d.
+  (HonestKey( sk ) @ #i) ∧ (K( sk ) @ #d)
+ ∧
+  ∀ #r. (Revoked( sk ) @ #r) ⇒ ⊥"
+*/
+
+
+end

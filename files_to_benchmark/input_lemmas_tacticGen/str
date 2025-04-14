@@ -1,0 +1,6 @@
+key_secret -Dsecure
+key_secret_corrupt_pfs -Dcorrupt
+key_reachable_2 -Dexecutable2
+key_reachable_3 -Dexecutable3
+key_reachable_4 -Dexecutable4
+key_reachable_5 -Dexecutable5
