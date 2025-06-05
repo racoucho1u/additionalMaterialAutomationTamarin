@@ -24,4 +24,4 @@ To run the benchmark, you can then run `python3 tacticGenBench.py`. The results 
 To extract information from these results, you can run the script `python3 generateDataJson,py` that will generate the file data.json.
 
 #### Analysing the results.
-To analyse the results, we provide the script `results.py` that generates the tables and graph presented in the paper and stores them in the forlders tables and graphs.
+To analyse the results, we provide the script `results.py` that generates the tables and graph presented in the paper and stores them in the forlders tables and graphs. This script reads the experiement results from the file data.json that contains by default the full results of our benchmark. 
