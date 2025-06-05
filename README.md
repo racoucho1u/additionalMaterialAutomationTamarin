@@ -15,8 +15,8 @@ Running the strategy benchmark requires to create the folders develop,escapeFina
 
 
 
-Then the benchmark can be run with the command `python3 benchmark.py`. The results of this lemmas will be store in the file propre.
-To extract information from these results, you can run the script `python3 generateDataJson,py` that will generate the file data.json.
+Then the benchmark can be run with the command `python3 benchmark.py`. The results of this lemmas will be store in the directory propre.
+To extract information from these results, you can run the script `python3 generateDataJson.py` that will generate the file data.json.
 
 #### Running the tactic generation benchmark.
 Running the tactic generation benchmark requiers to create a folder tacticGeneration and to clone the corresponding git inside ([tactic-generation](https://anonymous.4open.science/r/tamarin-prover-8725/)).
